@@ -1,0 +1,1 @@
+module winnerPolicy(clock, reset, v)
