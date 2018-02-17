@@ -44,7 +44,7 @@ module amiSink(clock, reset, knownSinks, argID, iamSink);
     assign iamSink = iamSink_ph;
 endmodule
 
-module asdasd(clock, reset, knownSinks_a);
+module knownSinks_test(clock, reset, knownSinks_a);
     input clock, reset;
     output [10*5-1 : 0] knownSinks_a;
 
@@ -57,6 +57,30 @@ module asdasd(clock, reset, knownSinks_a);
     assign knownSinks_a = knownSinks_a_a;
 endmodule
 
+module arrayParser(clock, reset, knownSinks_a, value);
+    input clock, reset;
+    input [10*5-1 : 0] knownSinks_a;
+
+    reg [5:0] reg_knownSinks[0:9];
+    reg [4:0] count;
+    reg [4:0] hello;
+
+    output [4:0] value;
+
+    always @ (posedge reset)
+    begin
+        count <= 5'd0;
+    end 
+
+    always @ (posedge clock)
+    begin
+        reg_knownSinks[count] = knownSinks_a[5*count +: 5];
+        count = count + 1;
+    end
+
+    assign value = reg_knownSinks[count];
+endmodule
+
 module general_testbench();
     reg clock, reset;
     wire iamSink_bool;
@@ -64,10 +88,15 @@ module general_testbench();
     //reg knownSinks, argID;
     reg [10*5-1 : 0] knownSinks;
     reg [10*5-1 : 0] argID;
-    wire [10*5-1 : 0] knownSinks_a;
+    
 
     amiSink ais1(clock, reset, knownSinks, argID, iamSink_bool);
-    asdasd asd1(clock, reset, knownSinks_a);
+    
+    wire [10*5-1 : 0] knownSinks_a;
+    knownSinks_test ks1(clock, reset, knownSinks_a);
+
+    wire [4:0] arrayParserValue;
+    arrayParser ap1(clock, reset, knownSinks_a, arrayParserValue);
 
     // Initial Reset
     initial begin
