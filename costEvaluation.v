@@ -8,19 +8,20 @@
  *  iamSink     :   return value (boolean 1 or 0) 
  *
  *  Suggestions:
- *      instead of passing 
+ *  1. (TBD) instead of passing all the values, pass the memory address instead
  */
 
 module amiSink(clock, reset, knownSinks, argID, iamSink);
     input clock, reset;
-    //input [4:0] knownSinks[0:9];    // 10 * 5 bit regs
-    //input [4:0] argID[0:9];         // 10 * 5 bit regs
-    input knownSinks;
-    input argID;
-    output iamSink;
+    input [10*5-1 : 0] knownSinks;
+    input [10*5-1 : 0] argID;
+    reg [4:0] reg_knownSinks[0:9];  // 10 * 5 bits reg 
+    reg [4:0] reg_argID[0:9];       // 10 * 5 bits reg
 
     reg [4:0] count;
-    reg iamSink_ph; // iamSink placeholder 
+    reg iamSink_ph; // iamSink placeholder
+        
+    output iamSink; 
 
     // Reset the circuit
     always @ (posedge reset)
@@ -43,13 +44,30 @@ module amiSink(clock, reset, knownSinks, argID, iamSink);
     assign iamSink = iamSink_ph;
 endmodule
 
+module asdasd(clock, reset, knownSinks_a);
+    input clock, reset;
+    output [10*5-1 : 0] knownSinks_a;
+
+    reg [10*5-1 : 0] knownSinks_a_a;
+    reg [5:0] i;
+    always @ (posedge reset)
+        for (i = 0; i < 10; i=i+1)
+            knownSinks_a_a[5*i +: 5] = i;
+
+    assign knownSinks_a = knownSinks_a_a;
+endmodule
+
 module general_testbench();
     reg clock, reset;
     wire iamSink_bool;
 
-    reg knownSinks, argID;
+    //reg knownSinks, argID;
+    reg [10*5-1 : 0] knownSinks;
+    reg [10*5-1 : 0] argID;
+    wire [10*5-1 : 0] knownSinks_a;
 
     amiSink ais1(clock, reset, knownSinks, argID, iamSink_bool);
+    asdasd asd1(clock, reset, knownSinks_a);
 
     // Initial Reset
     initial begin
@@ -83,6 +101,7 @@ module general_testbench();
         $dumpvars(0, general_testbench);
         #200 $finish;
     end
+
 endmodule
 
 
