@@ -24,20 +24,20 @@ module amiSink(clock, reset, knownSinks, argID, iamSink, goToForwardNode);
     always @ (posedge reset)
     begin
         count <= 5'd0;
+        goToForwardNode_ph = 0;
     end
 
     reg [4:0] knownSinks_ph; // current sink value
     reg iamSink_ph, goToForwardNode_ph;
     initial begin
         goToForwardNode_ph = 0;
+        iamSink_ph = 0;
     end
     // Every clock
     always @ (posedge clock) begin
         knownSinks_ph = knownSinks[5*count +: 5];
         if (knownSinks_ph == argID)
             iamSink_ph = 1;
-        else
-            iamSink_ph = 0;
 
         count = count + 1;
         if (count == 10)
@@ -60,8 +60,29 @@ module amiSink(clock, reset, knownSinks, argID, iamSink, goToForwardNode);
 
     // done in amiSink? output
     assign goToForwardNode = goToForwardNode_ph;
+endmodule
 
 
+module amiForwardingNode(clock, reset, goToForwardNode, MY_NODE_ID, destinationID, iamForwarding, done_iamForwarding);
+    input clock, reset, MY_NODE_ID, destinationID, goToForwardNode;
+    reg iamForwarding_ph, done_iamForwarding_ph;
+    output iamForwarding, done_iamForwarding;
+
+    initial begin
+        done_iamForwarding_ph = 0;
+    end
+    always @ (posedge goToForwardNode)
+    begin
+        if (MY_NODE_ID == destinationID)
+            iamForwarding_ph = 1;
+        else
+            iamForwarding_ph = 0;
+
+        done_iamForwarding_ph = 1;
+    end
+
+    assign iamForwarding = iamForwarding_ph;
+    assign done_iamForwarding = done_iamForwarding_ph;
 endmodule
 
 module knownSinks_test(clock, reset, knownSinks_a);
@@ -108,12 +129,22 @@ module general_testbench();
     reg [10*5-1 : 0] knownSinks;
     reg [5:0] argID;
     
+    // MY_NODE_ID | destinationID
+    reg MY_NODE_ID, destinationID;
+    initial begin
+        MY_NODE_ID = 1;
+        destinationID = 1;
+    end
+
+    // amiSink
     wire iamSink_bool, goToForwardNode_bool;
     amiSink ais1(clock, reset, knownSinks, argID, iamSink_bool, goToForwardNode_bool);
-    
-    //reg [10*5-1 : 0] knownSinks_a;
-    //knownSinks_test ks1(clock, reset, knownSinks_a);
 
+    // amiForwarding
+    wire iamForwarding_bool, done_iamForwarding_bool;
+    amiForwardingNode afn1(clock, reset, goToForwardNode_bool, MY_NODE_ID, destinationID, iamForwarding_bool, done_iamForwarding_bool);
+
+    // arrayParser
     wire [4:0] arrayParserValue;
     arrayParser ap1(clock, reset, knownSinks, arrayParserValue);
 
