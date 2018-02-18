@@ -9,14 +9,15 @@
  *
  *  Suggestions:
  *  1. (TBD) instead of passing all the values, pass the memory address instead
+ *  2. Use sequence indicators to make a sequential circuits between modules
  */
 
 module amiSink(clock, reset, knownSinks, argID, iamSink);
     input clock, reset;
     input [10*5-1 : 0] knownSinks;
-    input [10*5-1 : 0] argID;
-    reg [4:0] reg_knownSinks[0:9];  // 10 * 5 bits reg 
-    reg [4:0] reg_argID[0:9];       // 10 * 5 bits reg
+    input [5:0] argID;
+    //reg [4:0] reg_knownSinks[0:9];  // 10 * 5 bits reg 
+    //reg [4:0] reg_argID[0:9];       // 10 * 5 bits reg
 
     reg [4:0] count;
     reg iamSink_ph; // iamSink placeholder
@@ -29,6 +30,19 @@ module amiSink(clock, reset, knownSinks, argID, iamSink);
         count <= 5'd0;
     end
 
+    reg [4:0] knownSinks_ph; // current sink value
+
+    // Every clock
+    always @ (posedge clock) begin
+        knownSinks_ph = knownSinks[5*count +: 5];
+        if (knownSinks_ph == argID)
+            iamSink_ph = 1;
+        else
+            iamSink_ph = 0;
+
+        count = count + 1;
+    end
+/*
     // Every clock 
     always @ (posedge clock)
     begin
@@ -39,7 +53,7 @@ module amiSink(clock, reset, knownSinks, argID, iamSink);
             iamSink_ph = 1'd0;
         end
     end
-
+*/
     // Read the value of iamSink_ph
     assign iamSink = iamSink_ph;
 endmodule
@@ -57,9 +71,9 @@ module knownSinks_test(clock, reset, knownSinks_a);
     assign knownSinks_a = knownSinks_a_a;
 endmodule
 
-module arrayParser(clock, reset, knownSinks_a, value);
+module arrayParser(clock, reset, knownSinks, value);
     input clock, reset;
-    input [10*5-1 : 0] knownSinks_a;
+    input [10*5-1 : 0] knownSinks;
 
     reg [5:0] reg_knownSinks[0:9];
     reg [4:0] count;
@@ -74,11 +88,11 @@ module arrayParser(clock, reset, knownSinks_a, value);
 
     always @ (posedge clock)
     begin
-        reg_knownSinks[count] = knownSinks_a[5*count +: 5];
+        hello = knownSinks[5*count +: 5];
         count = count + 1;
     end
 
-    assign value = reg_knownSinks[count];
+    assign value = hello;
 endmodule
 
 module general_testbench();
@@ -87,16 +101,16 @@ module general_testbench();
 
     //reg knownSinks, argID;
     reg [10*5-1 : 0] knownSinks;
-    reg [10*5-1 : 0] argID;
+    reg [5:0] argID;
     
 
     amiSink ais1(clock, reset, knownSinks, argID, iamSink_bool);
     
-    wire [10*5-1 : 0] knownSinks_a;
-    knownSinks_test ks1(clock, reset, knownSinks_a);
+    //reg [10*5-1 : 0] knownSinks_a;
+    //knownSinks_test ks1(clock, reset, knownSinks_a);
 
     wire [4:0] arrayParserValue;
-    arrayParser ap1(clock, reset, knownSinks_a, arrayParserValue);
+    arrayParser ap1(clock, reset, knownSinks, arrayParserValue);
 
     // Initial Reset
     initial begin
@@ -109,7 +123,7 @@ module general_testbench();
         clock = 0;
         forever #10 clock = ~clock;
     end
-
+/*
     // knownSinks
     initial begin
         knownSinks = 1;
@@ -117,12 +131,19 @@ module general_testbench();
         #50 knownSinks = 1;
         #50 knownSinks = 0;
     end
+*/
+    // knownSinks vector
+    reg [4:0] i;
+    initial begin
+        for(i = 0; i < 10; i=i+1)
+            knownSinks[5*i +: 5] = i;
+    end
 
     // argID
     initial begin
-        argID = 0;
-        #100 argID = 1;
-        #100 argID = 0;
+        argID = 1;
+        //#100 argID = 1;
+        //#100 argID = 0;
     end
 
     initial begin
