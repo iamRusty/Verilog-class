@@ -12,17 +12,13 @@
  *  2. Use sequence indicators to make a sequential circuits between modules
  */
 
-module amiSink(clock, reset, knownSinks, argID, iamSink);
+module amiSink(clock, reset, knownSinks, argID, iamSink, goToForwardNode);
     input clock, reset;
     input [10*5-1 : 0] knownSinks;
     input [5:0] argID;
-    //reg [4:0] reg_knownSinks[0:9];  // 10 * 5 bits reg 
-    //reg [4:0] reg_argID[0:9];       // 10 * 5 bits reg
 
     reg [4:0] count;
-    reg iamSink_ph; // iamSink placeholder
-        
-    output iamSink; 
+    output iamSink, goToForwardNode; 
 
     // Reset the circuit
     always @ (posedge reset)
@@ -31,7 +27,10 @@ module amiSink(clock, reset, knownSinks, argID, iamSink);
     end
 
     reg [4:0] knownSinks_ph; // current sink value
-
+    reg iamSink_ph, goToForwardNode_ph;
+    initial begin
+        goToForwardNode_ph = 0;
+    end
     // Every clock
     always @ (posedge clock) begin
         knownSinks_ph = knownSinks[5*count +: 5];
@@ -41,6 +40,8 @@ module amiSink(clock, reset, knownSinks, argID, iamSink);
             iamSink_ph = 0;
 
         count = count + 1;
+        if (count == 10)
+            goToForwardNode_ph = 1;
     end
 /*
     // Every clock 
@@ -54,8 +55,13 @@ module amiSink(clock, reset, knownSinks, argID, iamSink);
         end
     end
 */
-    // Read the value of iamSink_ph
+    // amiSink output
     assign iamSink = iamSink_ph;
+
+    // done in amiSink? output
+    assign goToForwardNode = goToForwardNode_ph;
+
+
 endmodule
 
 module knownSinks_test(clock, reset, knownSinks_a);
@@ -97,14 +103,13 @@ endmodule
 
 module general_testbench();
     reg clock, reset;
-    wire iamSink_bool;
 
     //reg knownSinks, argID;
     reg [10*5-1 : 0] knownSinks;
     reg [5:0] argID;
     
-
-    amiSink ais1(clock, reset, knownSinks, argID, iamSink_bool);
+    wire iamSink_bool, goToForwardNode_bool;
+    amiSink ais1(clock, reset, knownSinks, argID, iamSink_bool, goToForwardNode_bool);
     
     //reg [10*5-1 : 0] knownSinks_a;
     //knownSinks_test ks1(clock, reset, knownSinks_a);
