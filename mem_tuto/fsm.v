@@ -46,7 +46,8 @@ module fsm(clk,nrst,wr_en,addr,data_in,data_out,done);
       data_out <= 0;
     else
       if (state == 0)
-        data_out <= {data_in[30:0],data_in[31]};
+        data_out <= data_in;
+        //data_out <= {data_in[30:0],data_in[31]};
 
   reg wr_en;
   always@(*)

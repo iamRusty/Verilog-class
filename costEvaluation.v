@@ -84,10 +84,10 @@ module amiForwardingNode(clock, reset, goToForwardNode, MY_NODE_ID, destinationI
     assign done_iamForwarding = done_iamForwarding_ph;
 endmodule
 
-/*
+
 module neighbor_sinks_in_other_cluster(clock, reset, MY_NODE_ID, done_iamForwarding, knownSinks, neighbors);
     input clock, reset, done_iam
-*/
+
 module knownSinks_test(clock, reset, knownSinks_a);
     input clock, reset;
     output [10*5-1 : 0] knownSinks_a;
