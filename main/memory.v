@@ -34,37 +34,3 @@ module mem(clock, address, wr_en, data_in, data_out);
 		end
 	end
 endmodule
-
-module testbenc1h();
-	reg clock, reset, wr_en;
-	wire [`WORD_WIDTH-1:0] mem_data_out; 
-	reg [`WORD_WIDTH-1:0] mem_data_in;
-	wire [`WORD_WIDTH-1:0] address;
-
-	mem mem1(clock, address, wr_en, mem_data_in, mem_data_out);
-	amISink aIS1(clock, reset, address, mem_data_out, MYNODEID, iamSink, done)
-	// Clock
-	initial begin
-		clock = 0;
-		forever #10 clock = ~clock;
-	end
-
-	// Memory testbench
-
-	initial begin
-		wr_en = 0;
-		#5
-		mem_data_in = 1;
-		address = 0; 
-		wr_en = 1;
-		#10 wr_en = 0;
-	end
-
-	// Wavefile
-	initial begin
-		$dumpfile("testbench.vcd");
-		$dumpvars(0, testbench);
-		#100 
-		$finish;
-	end
-endmodule
