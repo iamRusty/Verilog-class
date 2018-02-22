@@ -36,15 +36,21 @@ module mem(clock, address, wr_en, data_in, data_out);
 endmodule
 
 
+module amISink(clock, reset, address, data_in, MYNODEID, iamSink, done)
+	output address;
+	input data_in;
+	address = 0
+	data_in = ?
 
-module testbench();
+module testbenc1h();
 	reg clock, reset, wr_en;
 	wire [`WORD_WIDTH-1:0] mem_data_out; 
 	reg [`WORD_WIDTH-1:0] mem_data_in;
-	reg [`WORD_WIDTH-1:0] address;
+	// reg [`WORD_WIDTH-1:0] address;
+	wire [`WORD_WIDTH-1:0] address;
 
 	mem mem1(clock, address, wr_en, mem_data_in, mem_data_out);
-
+	amISink aIS1(clock, reset, address, mem_data_out, MYNODEID, iamSink, done)
 	// Clock
 	initial begin
 		clock = 0;
