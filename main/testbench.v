@@ -31,7 +31,7 @@ module testbench();
     // IBAHIN MO ITO FOR TEST CASE
     initial begin
         //MY_NODE_ID = 17;
-         MY_NODE_ID = 3;
+         MY_NODE_ID = 17;
         // MY_NODE_ID = 1;
     end
 

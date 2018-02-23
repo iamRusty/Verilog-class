@@ -36,6 +36,12 @@ module tb_reward();
         done_reward
     );
 
-    
+    // CLOCK
+    initial begin
+        clock = 0;
+        forever clock = ~clock;
+    end
+
+
 
 endmodule
