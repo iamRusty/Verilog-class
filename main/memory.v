@@ -13,7 +13,7 @@
  *  (2/64)      [0x148 - 0x1C7]     batteryStat
  *  (2/64)      [0x1C8 - 0x247]     qValue
  *  (2/8*64)    [0x248 - 0x658]     sinkIDs
- *  (2/8)       [0x700 - 0x709]     nextSinks
+ *  (2/8)       [0x700 - 0x709]     nextsinks
  *  (2/8)       [0x710 - 0x719]     better_qvalue
  */
 
