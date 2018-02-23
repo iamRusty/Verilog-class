@@ -19,7 +19,7 @@ module amISink(clock, reset, address, data_in, MY_NODE_ID, iamSink, done);
     initial begin
         iamSink_buf <= 0;
         done_buf <= 0;
-        address_count <= 16'h0;
+        address_count <= 16'h8;
     end
 
     // Reset
@@ -28,7 +28,7 @@ module amISink(clock, reset, address, data_in, MY_NODE_ID, iamSink, done);
     always @ (posedge reset) begin
         iamSink_buf <= 0;
         done_buf <= 0;
-        address_count <= 16'h0;
+        address_count <= 16'h8;
     end
 
     always @ (posedge clock) begin
@@ -41,7 +41,7 @@ module amISink(clock, reset, address, data_in, MY_NODE_ID, iamSink, done);
             address_count = address_count + 2; // +2 dahil every 2 bytes
 
             // Kapag tapos na lahat ng knownSinks array
-            if (address_count == 32)
+            if (address_count == 40)
                 done_buf = 1;
         end
     end

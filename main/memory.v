@@ -34,9 +34,10 @@ module mem(clock, address, wr_en, data_in, data_out);
     // INITIAL CONTENTS FOR TESTING PURPOSES ONLY
     integer i;
     initial begin
+        // knownSinks
         for (i = 0; i < 15; i=i+1) begin
-            memory[i*2+1] = 15 - i;   // totoong value
-            memory[i*2] = 0;          // padding para hindi XX
+            memory[8 + i*2+1] = 15 - i;   // totoong value
+            memory[8 + i*2] = 0;          // padding para hindi XX
         end
     end
 
