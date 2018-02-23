@@ -41,12 +41,27 @@ module reward(clock, reset, _action, _besthop, address, data_in, data_out, MY_NO
     // Address Buffer
     reg [`WORD_WIDTH-1:0] address_count;
 
+    // Tick register
+    reg [9:0] tick;
+
     // Reset
     always @ (posedge reset) begin
         done_buf <= 0;
         data_out_buf <= 0;
+        tick <= 0;
+        address_count <= 8;
+    end
+/*
+    // Tick counter
+    always @ (posedge) begin
+        tick = tick + 1;
     end
 
+    // State machine
+    always @ (posedge clock) begin
+
+    end
+*/
     reg [`WORD_WIDTH-1:0] fsourceID;
     reg [`WORD_WIDTH-1:0] fbatteryStat;
     reg [`WORD_WIDTH-1:0] fValue;
@@ -54,7 +69,7 @@ module reward(clock, reset, _action, _besthop, address, data_in, data_out, MY_NO
     reg [`WORD_WIDTH-1:0] fdestinationID;
 
     always @ (posedge done_prev) begin
-        if (!done) begin
+        if (done_buf == 0) begin
             // Get all the components, store in registers
             // and then concatenate
             

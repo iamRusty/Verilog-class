@@ -39,9 +39,35 @@ module tb_reward();
     // CLOCK
     initial begin
         clock = 0;
-        forever clock = ~clock;
+        forever #(`CLOCK_PD/2) clock = ~clock;
     end
 
+    // RESET    
+    initial begin
+        reset = 1; 
+        #1;
+        reset = 0;
+    end
 
+    // REWARD ARGUMENTS
+    initial begin
+        done_prev <= 0;
+        MY_NODE_ID <= 2;
+        MY_CLUSTER_ID <=3;
+        _action <= 5;
+        _besthop <= 6;
+        
+        #10 done_prev = 1;
+    end
+
+    // DUMP and MAIN SETTINGS
+    initial begin
+        $dumpfile("tb_reward.vcd");
+        $dumpvars(0, tb_reward);
+        #400;
+        done_prev = 0;
+        #20;
+        $finish; 
+    end
 
 endmodule
