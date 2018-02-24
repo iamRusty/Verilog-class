@@ -4,8 +4,8 @@
 `define WORD_WIDTH 16
 `define CLOCK_PD 20
 
-module reward(clock, reset, _action, _besthop, address, data_in, data_out, MY_NODE_ID, MY_CLUSTER_ID, done_prev, done);
-    input clock, reset;
+module reward(clock, nreset, _action, _besthop, address, data_in, data_out, MY_NODE_ID, MY_CLUSTER_ID, done_prev, done);
+    input clock, nreset;
     input [`WORD_WIDTH-1:0] _action;
     input [`WORD_WIDTH-1:0] _besthop;
 
@@ -44,24 +44,43 @@ module reward(clock, reset, _action, _besthop, address, data_in, data_out, MY_NO
     // Tick register
     reg [9:0] tick;
 
-    // Reset
-    always @ (posedge reset) begin
+    // Negative Reset
+    always @ (negedge nreset) begin
         done_buf <= 0;
         data_out_buf <= 0;
         tick <= 0;
         address_count <= 8;
     end
-/*
+
     // Tick counter
-    always @ (posedge) begin
-        tick = tick + 1;
-    end
-
-    // State machine
     always @ (posedge clock) begin
-
+        if (!nreset)
+            tick <= 0;
+        else
+            tick <= tick + 1;
     end
-*/
+
+    /*
+     *  State Machine
+     *  0 - Wait for done_prev
+     *  1 - Process fsourceID
+     *  2 - Process fbatteryStat
+     *  3 - Process fValue
+     *  4 - Process fclusterID
+     *  5 - Process fdestinationID
+     *  6 - Concatenate
+     *  7 - done
+     */
+     
+    reg [4:0] state;
+    always @ (posedge clock) begin
+        if (!nreset)
+            state <= 0;
+        else begin
+            case(state)
+        end
+    end
+
     reg [`WORD_WIDTH-1:0] fsourceID;
     reg [`WORD_WIDTH-1:0] fbatteryStat;
     reg [`WORD_WIDTH-1:0] fValue;

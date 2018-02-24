@@ -8,7 +8,7 @@
 `include "reward.v"
 
 module tb_reward();
-    reg clock, reset;
+    reg clock, nreset;
 
     // MEMORY MODULE
     wire [`WORD_WIDTH-1:0] mem_data_out; 
@@ -24,7 +24,7 @@ module tb_reward();
     wire done_reward;
     reward r1(
         clock, 
-        reset, 
+        nreset, 
         _action, 
         _besthop, 
         address, 
@@ -44,9 +44,9 @@ module tb_reward();
 
     // RESET    
     initial begin
-        reset = 1; 
+        nreset = 0; 
         #1;
-        reset = 0;
+        nreset = 1;
     end
 
     // REWARD ARGUMENTS
