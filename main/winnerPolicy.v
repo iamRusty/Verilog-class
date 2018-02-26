@@ -2,39 +2,80 @@
 `define MEM_DEPTH  1024
 `define MEM_WIDTH  8
 `define WORD_WIDTH 16
+`define CLOCK_PD 20
 
-module winnerPolicy(clock, reset, _mybest, _besthop, _bestvalue, address, data_in, _bestneighborID, nexthop, done);
-    input clock, reset;
-    input [`WORD_WIDTH-1:0] _mybest;
-    input [`WORD_WIDTH-1:0] _besthop;
-    input [`WORD_WIDTH-1:0] _bestvalue;
-    
-    // _better_qvalue
-    output [`WORD_WIDTH-1:0] address;
-    input [`WORD_WIDTH-1:0] data_in;
+`include "floatRNG.v"
 
-    input [`WORD_WIDTH-1:0] _bestneighborID;
-    output [`WORD_WIDTH-1:0] nexthop;
+module winnerPolicy(
+    clock, 
+    nreset,
+    epsilon,
+    _mybest,
+    _besthop,       
+    _bestvalue,
+    _bestneighborID,
+    MY_NODE_ID,
+    done_prev, 
+    done,
+    nexthop
+    );
+
+    input clock, nreset;
+    input [15:0] epsilon;           // float
+    input [15:0] _mybest;           // float
+    input [15:0] _besthop;          // neighborID
+    input [15:0] _bestvalue;        // float
+    input [15:0] _bestneighborID;   // neighborID
+    input [15:0] MY_NODE_ID;
+
+    input done_prev;
     output done;
+    output [15:0] nexthop;
 
-    reg [`WORD_WIDTH-1:0] nexthop;
+    reg [15:0] explore_constant;    // float
 
+    // floatRNG Module
+    reg [15:0] rng_data_out_buf;
+    reg call;
+    wire [15:0] rng_data_out;
+    floatRNG (clock, nreset, call, rng_data_out);
 
-    // Initial / Reset
-    always @ (posedge reset) begin
-        nexthop <= 100;     // For the lack of negative number representaion, let's use 100 as -1 
+    // explore_constant generator
+    always @ (posedge clock) begin
+        if (!nreset)
+            explore_constant <= 0;
+        else
+            explore_constant <= rng_data_out_buf;
+    end    
 
-        //  Call Randomizer
-        //  Add delay
-        //  Proceed to explore_constant < epsion ....
-    
+    reg [15:0] which;
+    // which generator
+    always @ (posedge clock) begin
+        if (!nreset)
+            which <= 0;
+        else
+            which <= rng_data_out_buf;
     end
 
-    // Main
-    
+    // Tick Counter
+    always @ (posedge clock) begin
+        if (!nreset)
+            tick <= 0;
+        else
+            if (state == 0)
+                tick <= 0;
+            else
+                tick = tick + 1;
+    end
 
-    reg [`WORD_WIDTH-1:0] address_count;
+    // Tick More
+    always @ (posedge done_prev)
+        tick <= 0;
+
+    /*
+     *  State Machine
+     *      0: IDLE - Wait for done_prev
+     *      1: Generate explore_constant
+     */  
 
 endmodule
-
-
