@@ -18,10 +18,11 @@ module tb_reward();
 
     // REWARD MODULE
     reg [`WORD_WIDTH-1:0] _action, _besthop;
-    wire [80 - 1:0] reward_data_out;
+    //wire [80 - 1:0] reward_data_out;
     reg [`WORD_WIDTH-1:0] MY_NODE_ID, MY_CLUSTER_ID;
     reg done_prev;  //wire done_prev;
     wire done_reward;
+    wire [15:0] new_data_out;
     reward r1(
         clock, 
         nreset, 
@@ -29,11 +30,12 @@ module tb_reward();
         _besthop, 
         address, 
         mem_data_out, 
-        reward_data_out, 
+        //reward_data_out, 
         MY_NODE_ID, 
         MY_CLUSTER_ID, 
         done_prev,      // to be renamed
-        done_reward
+        done_reward,
+        new_data_out
     );
 
     // CLOCK
@@ -45,7 +47,11 @@ module tb_reward();
     // RESET    
     initial begin
         nreset = 0; 
-        #1;
+        #20;
+        nreset = 1;
+        #480
+        nreset = 0;
+        #20
         nreset = 1;
     end
 
@@ -57,14 +63,14 @@ module tb_reward();
         _action <= 5;
         _besthop <= 6;
         
-        #10 done_prev = 1;
+        #100 done_prev = 1;
     end
 
     // DUMP and MAIN SETTINGS
     initial begin
         $dumpfile("tb_reward.vcd");
         $dumpvars(0, tb_reward);
-        #400;
+        #500;
         done_prev = 0;
         #20;
         $finish; 

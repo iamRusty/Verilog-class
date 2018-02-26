@@ -8,6 +8,11 @@ amisink:
 	vvp testbench
 	gtkwave testbench.vcd
 
+fsm:
+	iverilog -o tb_try_fsm tb_try_fsm.v
+	vvp tb_try_fsm
+	gtkwave tb_try_fsm
+
 clean:
 	rm -f a.out
 	rm -f testbench
