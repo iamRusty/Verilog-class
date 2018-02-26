@@ -18,7 +18,8 @@ module winnerPolicy(
     MY_NODE_ID,
     done_prev, 
     done,
-    nexthop
+    nexthop,
+    epsilon_step
     );
 
     input clock, nreset;
@@ -32,6 +33,7 @@ module winnerPolicy(
     input done_prev;
     output done;
     output [15:0] nexthop;
+    input [15:0] epsilon_step;
 
     reg [15:0] explore_constant;    // float
 
@@ -44,7 +46,8 @@ module winnerPolicy(
     reg call_fSub;
     wire [15:0] fSub_data_out;
     wire sub_compare;
-    floatSub fSub1(clock, nreset, call_fSub, fSub_data_out, sub_compare);
+    reg [15:0] left, right;
+    floatSub fSub1(clock, nreset, call_fSub, left, right, fSub_data_out, sub_compare);
 
     // (COMBINATIONAL) explore_constant generator 
     always @ (*) begin
@@ -98,6 +101,32 @@ module winnerPolicy(
         end
     end
 
+    // NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT
+    // NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT
+    // NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT
+    // NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT
+    // NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT
+    // nexthop = _better_qvalue[int(math.ceil(which * len(_better_qvalue) - 1))]
+    // Must be Combinational
+    reg [15:0] nexthop_buf;
+    always @ (posedge clock) begin
+        if (!nreset)
+            nexthop_buf <= 0;
+        else begin
+            nexthop_buf <= 1;
+        end
+    end
+
+    
+    // (COMBINATIONAL) epsilon -= epsilon_step
+    reg [15:0] epsilon_temp;
+    always @ (*) begin
+        if (state == 6)
+            epsilon_temp = epsilon - epsilon_step;
+        else
+            epsilon_temp <= 0;
+    end
+
     reg [7:0] tick;
     // Tick Counter
     always @ (posedge clock) begin
@@ -137,11 +166,11 @@ module winnerPolicy(
                         state <= 2;
                 2:  // Compare explore_constant and epsilon
                     if (tick < 6)
-                        state <= 2
+                        state <= 2;
                     else
                         state <= 3;
                 3:  // Make decision for 1st if
-                    if (compare == 0)   // Get Out!
+                    if (sub_compare == 0)   // Get Out!
                         state <= 11;    // TBD TBD TBD TBD TBD
                     else
                         state <= 4;
@@ -150,7 +179,16 @@ module winnerPolicy(
                         state <= 4;
                     else
                         state <= 5;
-                5: //
+                5:  // nexthop = _better_qvalue[int(math.ceil(which * len(_better_qvalue) - 1))]
+                    if (tick < 15)
+                        state <= 5;
+                    else
+                        state <= 6;
+                6:  // epsilon -= epislon_step
+                    if (tick < 15)
+                        state <= 6;
+                    else
+                        state <= 7;
                 default:
                     state <= 0;
             endcase

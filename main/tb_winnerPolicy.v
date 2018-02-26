@@ -20,6 +20,7 @@ module tb_winnerPolicy();
     reg done_prev;
     wire done;
     wire [15:0] nexthop;
+    reg [15:0] epsilon_step;
     winnerPolicy wp1(
         clock, 
         nreset,
@@ -31,7 +32,8 @@ module tb_winnerPolicy();
         MY_NODE_ID,
         done_prev, 
         done,
-        nexthop
+        nexthop,
+        epsilon_step
     );
 
     // CLOCK
