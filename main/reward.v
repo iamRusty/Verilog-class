@@ -78,7 +78,7 @@ module reward(clock, nreset, _action, _besthop, address, data_in, MY_NODE_ID, MY
      */
 
     // Next state
-    reg [4:0] state;
+    reg [3:0] state;
     always @ (posedge clock) begin
         if (!nreset) begin
             state <= 0;

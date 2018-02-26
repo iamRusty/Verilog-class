@@ -38,25 +38,43 @@ module winnerPolicy(
     reg [15:0] rng_data_out_buf;
     reg call;
     wire [15:0] rng_data_out;
-    floatRNG (clock, nreset, call, rng_data_out);
+    floatRNG fRNG1(clock, nreset, call, rng_data_out);
 
-    // explore_constant generator
-    always @ (posedge clock) begin
-        if (!nreset)
-            explore_constant <= 0;
-        else
+    // (COMBINATIONAL) explore_constant generator 
+    always @ (*) begin
+        if (call)
             explore_constant <= rng_data_out_buf;
+        else
+            explore_constant <= 0;
     end    
 
     reg [15:0] which;
-    // which generator
-    always @ (posedge clock) begin
-        if (!nreset)
-            which <= 0;
-        else
+    // (COMBINATIONAL) which generator
+    always @ (*) begin
+        if (call)
             which <= rng_data_out_buf;
+        else
+            which <= 0;
+    end    
+
+    // (SEQUENTIAL) Call Generator
+    always @ (posedge clock) begin
+        if (!nreset) begin
+            call <= 0;
+        end
+        else begin
+            case(state)
+                1:  // explore_constant generator  
+                    call <= 1;  
+                3:  // which generator
+                    call <= 1;  
+                default: 
+                    call <= 0;
+            endcase
+        end
     end
 
+    reg [7:0] tick;
     // Tick Counter
     always @ (posedge clock) begin
         if (!nreset)
@@ -77,5 +95,25 @@ module winnerPolicy(
      *      0: IDLE - Wait for done_prev
      *      1: Generate explore_constant
      */  
-
+    reg [3:0] state;
+    always @ (posedge clock) begin
+        if (!nreset)
+            state <=0;
+        else begin
+            case(state)
+                0:  // Idle
+                    if (done_prev)
+                        state <= 1;
+                    else
+                        state <= 0;
+                1:  // Generate explore_constant
+                    if (tick < 3)
+                        state <= 1;
+                    else
+                        state <= 2;
+                default:
+                    state <= 0;
+            endcase
+        end
+    end
 endmodule
