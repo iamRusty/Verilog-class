@@ -9,7 +9,7 @@ amisink:
 	gtkwave testbench.vcd
 
 wp:
-	iverilog - tb_winnerPolicy tb_winnerPolicy.v
+	iverilog -o tb_winnerPolicy tb_winnerPolicy.v
 	vvp tb_winnerPolicy
 	gtkwave tb_winnerPolicy.vcd
 
@@ -19,3 +19,5 @@ clean:
 	rm -f testbench.vcd
 	rm -f tb_reward
 	rm -f tb_reward.vcd
+	rm -f tb_winnerPolicy.vcd
+	rm -f tb_winnerPolicy

@@ -5,6 +5,7 @@
 `define CLOCK_PD 20
 
 `include "floatRNG.v"
+`include "floatSub.v"
 
 module winnerPolicy(
     clock, 
@@ -35,15 +36,20 @@ module winnerPolicy(
     reg [15:0] explore_constant;    // float
 
     // floatRNG Module
-    reg [15:0] rng_data_out_buf;
-    reg call;
+    reg call_fRNG;
     wire [15:0] rng_data_out;
-    floatRNG fRNG1(clock, nreset, call, rng_data_out);
+    floatRNG fRNG1(clock, nreset, call_fRNG, rng_data_out);
+
+    // floatSub Module
+    reg call_fSub;
+    wire [15:0] fSub_data_out;
+    wire sub_compare;
+    floatSub fSub1(clock, nreset, call_fSub, fSub_data_out, sub_compare);
 
     // (COMBINATIONAL) explore_constant generator 
     always @ (*) begin
-        if (call)
-            explore_constant <= rng_data_out_buf;
+        if (call_fRNG)
+            explore_constant <= rng_data_out;
         else
             explore_constant <= 0;
     end    
@@ -51,25 +57,43 @@ module winnerPolicy(
     reg [15:0] which;
     // (COMBINATIONAL) which generator
     always @ (*) begin
-        if (call)
-            which <= rng_data_out_buf;
+        if (call_fRNG)
+            which <= rng_data_out;
         else
             which <= 0;
     end    
 
-    // (SEQUENTIAL) Call Generator
+    // (SEQUENTIAL) call_fRNG Generator
     always @ (posedge clock) begin
         if (!nreset) begin
-            call <= 0;
+            call_fRNG <= 0;
         end
         else begin
             case(state)
                 1:  // explore_constant generator  
-                    call <= 1;  
-                3:  // which generator
-                    call <= 1;  
+                    call_fRNG <= 1;  
+                4:  // which generator
+                    call_fRNG <= 1;  
                 default: 
-                    call <= 0;
+                    call_fRNG <= 0;
+            endcase
+        end
+    end
+
+    // explore_constant < epsilon ?
+    // (COMBINATIONAL) Compare explore_constant and epsilon
+    // Already taken care of by FSM
+
+    // (SEQUENTIAL) call_fSub Generator
+    always @ (posedge clock) begin
+        if (!nreset)
+            call_fSub <= 0;
+        else begin
+            case(state)
+                2:  // Compare explore_constant and epsilon
+                    call_fSub <= 1;
+                default: 
+                    call_fSub <=0;
             endcase
         end
     end
@@ -111,6 +135,22 @@ module winnerPolicy(
                         state <= 1;
                     else
                         state <= 2;
+                2:  // Compare explore_constant and epsilon
+                    if (tick < 6)
+                        state <= 2
+                    else
+                        state <= 3;
+                3:  // Make decision for 1st if
+                    if (compare == 0)   // Get Out!
+                        state <= 11;    // TBD TBD TBD TBD TBD
+                    else
+                        state <= 4;
+                4:  // Which generator
+                    if (tick < 12)
+                        state <= 4;
+                    else
+                        state <= 5;
+                5: //
                 default:
                     state <= 0;
             endcase
