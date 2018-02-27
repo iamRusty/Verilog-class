@@ -95,66 +95,53 @@ module reward(clock, nreset, _action, _besthop, address, data_in, MY_NODE_ID, MY
                         state <= 1;
                     else
                         state <= 2;
-                4'd2:
-                    if (tick < 6)
+                4'd2: begin
+                    if (tick < 6) begin
                         state <= 2;
+                        address_count = 'h148 + MY_NODE_ID*2;
+                    end
                     else
                         state <= 3;
-                4'd3:
-                    if (tick < 9)
+                end
+                4'd3: begin
+                    if (tick < 9) begin
                         state <= 3;
+                        address_count = 'h1C8 + _besthop*2;
+                    end
                     else
                         state <= 4;
+                end
                 4'd4:
                     if (tick < 12)
                         state <= 4;
                     else
                         state <= 5;
-                4'd5:
-                    if (tick < 15)
+                4'd5: begin
+                    if (tick < 15) begin
                         state <= 5;
+                        address_count = 'h48 + _action*2;
+                    end
                     else
-                        state <= 6;          
+                        state <= 6;     
+                end     
                 default: state <= 6;
             endcase
         end
     end
 
-    // Output Address
-    reg [15:0] new_data_out_buf;
-    always @ (posedge clock) begin
-        if (state == 0)
-            new_data_out_buf = 0;
-        else
-            case(state)
-                1:  new_data_out_buf = MY_NODE_ID;
-                2:  address_count = 'h148 + MY_NODE_ID*2;
-                3:  address_count = 'h1C8 + _besthop*2;
-                4:  new_data_out_buf = MY_CLUSTER_ID;
-                5:  address_count = 'h48 + _action*2;
-                default: new_data_out_buf = 0;
-            endcase
-    end
-
     // Output Data
-    always @ (*)
-        new_data_out_buf = data_in;
+    reg [15:0] new_data_out_buf;
+    always @ (*) begin
+        case (state)
+            1:  new_data_out_buf = MY_NODE_ID;
+            4:  new_data_out_buf = MY_CLUSTER_ID;
+            default: new_data_out_buf = data_in;
+        endcase
+    end
 
     assign new_data_out = new_data_out_buf;
 
     assign address = address_count;
-
-    // Done ???
-
-    /* always @ (posedge clock) begin
-        if (!nreset) 
-            done_buf = 0;
-        else
-            if (state == 6)
-                done_buf = 1;
-            else
-                done_buf = 0;
-    end     */ 
    
     assign done = (state == 6) ? 1:0;
 endmodule
