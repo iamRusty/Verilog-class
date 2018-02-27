@@ -120,25 +120,6 @@ module reward(clock, nreset, _action, _besthop, address, data_in, MY_NODE_ID, MY
         end
     end
 
-    // Done ???
-    always @ (posedge clock) begin
-        if (!nreset) 
-            done_buf = 0;
-        else
-            if (state == 6)
-                done_buf = 1;
-            else
-                done_buf = 0;
-    end
-
-/*
-    reg [`WORD_WIDTH-1:0] fsourceID;
-    reg [`WORD_WIDTH-1:0] fbatteryStat;
-    reg [`WORD_WIDTH-1:0] fValue;
-    reg [`WORD_WIDTH-1:0] fclusterID;
-    reg [`WORD_WIDTH-1:0] fdestinationID;
-*/
-
     // Output Address
     reg [15:0] new_data_out_buf;
     always @ (posedge clock) begin
@@ -162,5 +143,18 @@ module reward(clock, nreset, _action, _besthop, address, data_in, MY_NODE_ID, MY
     assign new_data_out = new_data_out_buf;
 
     assign address = address_count;
-    assign done = done_buf;
+
+    // Done ???
+
+    /* always @ (posedge clock) begin
+        if (!nreset) 
+            done_buf = 0;
+        else
+            if (state == 6)
+                done_buf = 1;
+            else
+                done_buf = 0;
+    end     */ 
+   
+    assign done = (state == 6) ? 1:0;
 endmodule

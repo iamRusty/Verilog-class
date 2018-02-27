@@ -21,6 +21,7 @@ module tb_winnerPolicy();
     wire done;
     wire [15:0] nexthop;
     reg [15:0] epsilon_step;
+    wire [15:0] epsilon_out;
     winnerPolicy wp1(
         clock, 
         nreset,
@@ -33,13 +34,23 @@ module tb_winnerPolicy();
         done_prev, 
         done,
         nexthop,
-        epsilon_step
+        epsilon_step,
+        epsilon_out
     );
 
     // CLOCK
     initial begin
         clock = 0;
         forever #(`CLOCK_PD/2) clock = ~clock;
+    end
+
+    initial begin
+        nreset = 0;
+        done_prev = 0;
+        #11
+        nreset = 1;
+        #20 
+        done_prev = 1;
     end
 
     // Initial Values
@@ -56,7 +67,7 @@ module tb_winnerPolicy();
     initial begin
         $dumpfile("tb_winnerPolicy.vcd");
         $dumpvars(0, tb_winnerPolicy);
-        #100
+        #800
         $finish; 
     end
 endmodule
