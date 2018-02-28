@@ -18,7 +18,7 @@
  *
  *  (2/8)       [0x700 - 0x709]     nextsinks
  *  (2/8)       [0x710 - 0x719]     better_qvalue
- *
+ *  (2/1)       [0x720 - 0x721]     len(better_qvalue)
  */
 
 module mem(clock, address, wr_en, data_in, data_out);
