@@ -85,44 +85,27 @@ module reward(clock, nreset, _action, _besthop, address, data_in, MY_NODE_ID, MY
         end
         else begin
             case(state)
-                4'd0:
+                4'd0: begin
                     if (done_prev)
                         state <= 1;
                     else
                         state <= 0;
+                end
                 4'd1:
-                    if (tick < 3)
-                        state <= 1;
-                    else
-                        state <= 2;
+                    state <= 2;
                 4'd2: begin
-                    if (tick < 6) begin
-                        state <= 2;
-                        address_count = 'h148 + MY_NODE_ID*2;
-                    end
-                    else
-                        state <= 3;
+                    address_count = 'h148 + MY_NODE_ID*2;
+                    state <= 3;
                 end
                 4'd3: begin
-                    if (tick < 9) begin
-                        state <= 3;
-                        address_count = 'h1C8 + _besthop*2;
-                    end
-                    else
-                        state <= 4;
+                    address_count = 'h1C8 + _besthop*2;
+                    state <= 4;                
                 end
-                4'd4:
-                    if (tick < 12)
-                        state <= 4;
-                    else
-                        state <= 5;
+                4'd4: 
+                    state <= 5;
                 4'd5: begin
-                    if (tick < 15) begin
-                        state <= 5;
-                        address_count = 'h48 + _action*2;
-                    end
-                    else
-                        state <= 6;     
+                    address_count = 'h48 + _action*2;
+                    state <= 6;     
                 end     
                 default: state <= 6;
             endcase

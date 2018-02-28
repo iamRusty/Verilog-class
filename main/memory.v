@@ -12,9 +12,13 @@
  *  (2/64)      [0xC8 - 0x147]      clusterID
  *  (2/64)      [0x148 - 0x1C7]     batteryStat
  *  (2/64)      [0x1C8 - 0x247]     qValue
- *  (2/8*64)    [0x248 - 0x658]     sinkIDs
+ *  (2/8*64)    [0x248 - 0x647]     sinkIDs
+ *  (2/16)      [0x648 - 0x657]     Hop Count Multiplier (Constants)
+ *  (2/16)      [0x658 - 0x668]     betterNeighbors
+ *
  *  (2/8)       [0x700 - 0x709]     nextsinks
  *  (2/8)       [0x710 - 0x719]     better_qvalue
+ *
  */
 
 module mem(clock, address, wr_en, data_in, data_out);
@@ -60,7 +64,7 @@ module mem(clock, address, wr_en, data_in, data_out);
 
         // qValue - (integer)
         for (i = 0; i < 16; i=i+1) begin
-            memory['h1C8 + i*2+1] = i;       // totoong value
+            memory['h1C8 + i*2+1] = 16-i;       // totoong value
             memory['h1C8 + i*2] = 0;         // padding para hindi XX
         end 
 

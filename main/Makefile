@@ -3,6 +3,11 @@ reward:
 	vvp tb_reward
 	gtkwave tb_reward.vcd
 
+r2:
+	iverilog -o tb_rewardV2 tb_rewardV2.v
+	vvp tb_rewardV2
+	gtkwave tb_rewardV2.vcd
+
 amisink:
 	iverilog -o testbench testbench.v
 	vvp testbench
@@ -21,3 +26,5 @@ clean:
 	rm -f tb_reward.vcd
 	rm -f tb_winnerPolicy.vcd
 	rm -f tb_winnerPolicy
+	rm -f tb_rewardV2.vcd
+	rm -f tb_rewardV2

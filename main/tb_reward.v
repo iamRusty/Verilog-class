@@ -58,7 +58,7 @@ module tb_reward();
     // REWARD ARGUMENTS
     initial begin
         done_prev <= 0;
-        MY_NODE_ID <= 2;
+        MY_NODE_ID <= 3;
         MY_CLUSTER_ID <=3;
         _action <= 5;
         _besthop <= 6;
