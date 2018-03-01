@@ -2,10 +2,10 @@
 
 module tb_randomGenerator();
     reg clock, nreset;
-    wire [7:0] rng_out;
-    wire [2:0]  rng_out_3bit;
+    wire [15:0] rng_out;
+    wire [15:0]  rng_out_4bit;
 
-    randomGenerator rng1(clock, nreset, rng_out, rng_out_3bit);
+    randomGenerator rng1(clock, nreset, rng_out, rng_out_4bit);
 
     // Clock 
     initial begin
