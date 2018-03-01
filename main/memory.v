@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-`define MEM_DEPTH  1024
+`define MEM_DEPTH  2048
 `define MEM_WIDTH  8
 `define WORD_WIDTH 16
 
@@ -22,6 +22,7 @@
  *  (2/1)       [0x68C - 0x68D]     betterNeighborCount      
  *  (2/64)      [0x68E - 0x70D]     sinkIDCount
  *  
+ *  (2/1)       [0x798 - 0x799]     RNG_Seed
  *  243 bytes out
  */
 
@@ -77,6 +78,10 @@ module mem(clock, address, wr_en, data_in, data_out);
         // nextsinks
 
         // better_qvalue
+
+        // RNG_SEED
+        memory['h7FE] = 0;
+        memory['h7FF] = 9;
     
     end
 

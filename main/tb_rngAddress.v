@@ -1,12 +1,14 @@
 `include "rngAddress.v"
+`include "randomGenerator.v"
 
 module tb_rngAddress();
 	reg clock, nreset, start_rng_address;
 	reg [15:0] betterNeighborCount, which;
-	wire [15:0] rng_adress_out;
+	wire [15:0] rng_adress_out, rng_out, rng_out_4bit;
 	wire done_rng_address;
 
-	rngAddress rngAddress1(clock, nreset, start_rng_address, betterNeighborCount, which, rng_adress_out, done_rng_address);
+	rngAddress rngAddress1(clock, nreset, start_rng_address, betterNeighborCount, rng_out_4bit, rng_adress_out, done_rng_address);
+	randomGenerator rng1(clock, nreset, rng_out, rng_out_4bit);
 
 	// Initial Values
 	initial begin
@@ -25,7 +27,11 @@ module tb_rngAddress();
 	// Reset
 	initial begin
 		nreset = 0;
-		#15
+		#15;
+		nreset = 1;
+		#100;
+		nreset = 0;
+		#20;
 		nreset = 1;
 	end
 

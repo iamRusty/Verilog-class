@@ -37,7 +37,7 @@ module winnerPolicyV2(
     reg [`WORD_WIDTH-1:0] explore_constant, which, address_count, epsilon_buf, epsilon_temp, _mybest_frac, nexthop_buf; 
     reg generate_random, done_winnerPolicy_buf;
     reg [`WORD_WIDTH-1:0] left, right;
-    reg [`WORD_WIDTH-1:0] len_better_qvalue;
+    reg [`WORD_WIDTH-1:0] betterNeighborCount;
     reg [`WORD_WIDTH-1:0] mikko_mult_left, mikko_mult_right, mikko_sub_left, mikko_sub_right, mikko_mult_out, mikko_sub_out, mikko_add_left, mikko_add_right, mikko_add_out;
     reg mikko_sub_compare;
     reg [`WORD_WIDTH-1:0] one_right, two_right;
@@ -50,13 +50,14 @@ module winnerPolicyV2(
     floatSubV2 fsub2(clock, nreset, left, right, floatSub_data_out, sub_compare);
 
     // randomGenerator MODULE
-    wire [7:0] rng_out;
-    wire [2:0] rng_out_3bit;
-    randomGenerator rng1(clock, nreset, rng_out, rng_out_3bit);
+    wire [15:0] rng_out;
+    wire [15:0] rng_out_4bit;
+    randomGenerator rng1(clock, nreset, rng_out, rng_out_4bit);
 
     // rngAddress
-    wire [`WORD_WIDTH-1:0] RNG_address;
-    rngAddress rng_ad1(clock, nreset, len_better_qvalue, RNG_address);
+    wire [`WORD_WIDTH-1:0] rng_address;
+    reg start_rngAddress;
+    rngAddress rng_ad1(clock, nreset, start_rngAddress, betterNeighborCount, which, rng_address, done_rng_address);
 
     /*
      * State Machine
@@ -84,7 +85,7 @@ module winnerPolicyV2(
                 4'd0: begin
                     if (start_winnerPolicy) begin
                         state <= 1;
-                        explore_constant = rng_out_3bit;
+                        explore_constant = rng_out_4bit;
                     end
                     else
                         state <= 0;
@@ -96,10 +97,10 @@ module winnerPolicyV2(
                 end
                 4'd2: begin
                     if (sub_compare) begin
-                        which = rng_out_3bit;
+                        which = rng_out_4bit;
 
-                        state <= 3;                 // fetch len_better_qvalue  // nexthop = _better_qvalue[int(math.ceil(which * len(_better_qvalue) - 1))]
-                        address_count <= 16'h720;   // address of len_better_qvalue
+                        state <= 3;                 // fetch betterNeighborCount  // nexthop = _better_qvalue[int(math.ceil(which * len(_better_qvalue) - 1))]
+                        address_count <= 16'h68C;   // address of betterNeighborCount
                         
                         left = epsilon_buf;         // floatSub( left, right )
                         right = epsilon_step;       // epsilon = epsilon - epsilon_step
@@ -109,8 +110,11 @@ module winnerPolicyV2(
                     end
                 end
                 4'd3: begin
-                    len_better_qvalue = data_in;
-                    state <= 4; // address = int(math.ceil(which * len(_better_qvalue) - 1))
+                    betterNeighborCount = data_in;
+                    
+                    // address = int(math.ceil(which * len(_better_qvalue) - 1))
+                    state <= 4;
+                    start_rngAddress = 1;
 
                     if (sub_compare)
                         epsilon_temp = floatSub_data_out;
@@ -118,33 +122,40 @@ module winnerPolicyV2(
                         epsilon_temp = 0;
                 end
                 4'd4: begin
-                    address_count = 16'h710 + RNG_address;                    
-                    state <= 5;                 // multiply _mybest and 0.001
+                    if (done_rng_address)
+                        state <= 5;
+                    else
+                        state <= 4;
+                end
+                4'd5: begin
+                    start_rngAddress <= 0;
+                    address_count = 16'h68C + rng_address;                    
+                    state <= 6;                 // multiply _mybest and 0.001
                     mikko_mult_left = _mybest;
                     mikko_mult_right = 1;       // mikko_mult_out_right = 0.001 
                 end
-                4'd5: begin
+                4'd6: begin
                     nexthop_buf = data_in;
                     _mybest_frac = mikko_mult_out;
-                    state <= 6;
+                    state <= 7;
                     mikko_sub_left = _mybest;
                     mikko_sub_right = _mybest_frac;
                 end
-                4'd6: begin
+                4'd7: begin
                     one_right = mikko_sub_out;
-                    state <= 7;
+                    state <= 8;
                     mikko_sub_left = _besthop;
                     mikko_sub_right = one_right;
                 end
-                4'd7: begin
+                4'd8: begin
                     if (mikko_sub_compare) begin
-                        state <= 15;        // Done
+                        state <= 11;        // Done
                         nexthop_buf = _besthop;
                         one = 0;
                     end
                     else begin
                         one = 1;
-                        state <= 8;
+                        state <= 9;
                         mikko_add_left = _mybest;
                         mikko_add_right = _mybest_frac;
                         if (_bestneighborID != MY_NODE_ID) begin
@@ -155,22 +166,22 @@ module winnerPolicyV2(
                         end
                     end
                 end
-                4'd8: begin
+                4'd9: begin
                     two_right = mikko_add_out;
                     mikko_sub_left = _bestvalue;
                     mikko_sub_right = two_right;
-                    state <= 9;
+                    state <= 10;
                 end
-                4'd9: begin
+                4'd10: begin
                     two = mikko_sub_compare;
                     if (one & two & three)
                         nexthop_buf = _besthop;
                     else
                         nexthop_buf = 100;
 
-                    state <= 10;
+                    state <= 11;
                 end
-                4'd10: begin
+                4'd11: begin
                     done_buf = 1;
                 end
                 default:

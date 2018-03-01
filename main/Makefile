@@ -28,6 +28,11 @@ wp2:
 	vvp tb_winnerPolicyV2
 	gtkwave tb_winnerPolicyV2.vcd
 
+rnga:
+	iverilog -o tb_rngAddress tb_rngAddress.v
+	vvp tb_rngAddress
+	gtkwave tb_rngAddress.vcd
+
 clean:
 	rm -f a.out
 	rm -f testbench
@@ -42,3 +47,5 @@ clean:
 	rm -f tb_winnerPolicyV2
 	rm -f tb_randomGenerator.vcd
 	rm -f tb_randomGenerator
+	rm -f tb_rngAddress
+	rm -f tb_rngAddress.vcd
