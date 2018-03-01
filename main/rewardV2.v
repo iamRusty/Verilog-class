@@ -7,7 +7,7 @@
 module rewardV2(clock, nreset, start, MY_NODE_ID, MY_CLUSTER_ID, _action, _besthop, address, data_in, data_out, done);
 
     input clock, nreset, start;
-    input [`WORD_WIDTH-1:0 ] MY_NODE_ID, MY_CLUSTER_ID, _action, _besthop, address, data_in;
+    input [`WORD_WIDTH-1:0] MY_NODE_ID, MY_CLUSTER_ID, _action, _besthop, address, data_in;
     output [`WORD_WIDTH-1:0] data_out;
     output done;
 
@@ -58,6 +58,7 @@ module rewardV2(clock, nreset, start, MY_NODE_ID, MY_CLUSTER_ID, _action, _besth
                 end
                 4'd5: begin
                     state <= 6;
+                    done_buf <= 1;
                 end
                 default: begin
                     state <= 6;

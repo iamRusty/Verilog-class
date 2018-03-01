@@ -18,6 +18,16 @@ wp:
 	vvp tb_winnerPolicy
 	gtkwave tb_winnerPolicy.vcd
 
+rng:
+	iverilog -o tb_randomGenerator tb_randomGenerator.v
+	vvp tb_randomGenerator
+	gtkwave tb_randomGenerator.vcd
+
+wp2:
+	iverilog -o tb_winnerPolicyV2 tb_winnerPolicyV2.v
+	vvp tb_winnerPolicyV2
+	gtkwave tb_winnerPolicyV2.vcd
+
 clean:
 	rm -f a.out
 	rm -f testbench
@@ -28,3 +38,7 @@ clean:
 	rm -f tb_winnerPolicy
 	rm -f tb_rewardV2.vcd
 	rm -f tb_rewardV2
+	rm -f tb_winnerPolicyV2.vcd
+	rm -f tb_winnerPolicyV2
+	rm -f tb_randomGenerator.vcd
+	rm -f tb_randomGenerator
