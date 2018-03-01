@@ -57,6 +57,7 @@ module winnerPolicyV2(
     // rngAddress
     wire [`WORD_WIDTH-1:0] rng_address;
     reg start_rngAddress;
+    reg rng_address_temp;
     rngAddress rng_ad1(clock, nreset, start_rngAddress, betterNeighborCount, which, rng_address, done_rng_address);
 
     /*
@@ -79,11 +80,13 @@ module winnerPolicyV2(
             nexthop_buf <= 100;     // 100 = -1 for the lack of representation on negative numbers
             epsilon_buf <= epsilon;
             done_buf = 0;
+            start_rngAddress = 0;
         end
         else begin
             case (state)
                 4'd0: begin
                     if (start_winnerPolicy) begin
+                        // Generate explore_constant
                         state <= 1;
                         explore_constant = rng_out_4bit;
                     end
@@ -91,28 +94,48 @@ module winnerPolicyV2(
                         state <= 0;
                 end
                 4'd1: begin
-                    state <= 2;                     // floatSub( explore_constant, epsilon )
-                    left = explore_constant;        // left = explore_constant;
-                    right = 5;                      // right = epsilon;
+                    if (explore_constant < epsilon) begin
+                        state <= 2;
+
+                        // betterNeighborCount Address
+                        address_count <= address_count <= 16'h68C; 
+                    end
+                    else
+                        state <= 11;
                 end
                 4'd2: begin
-                    if (sub_compare) begin
-                        which = rng_out_4bit;
+                    which = rng_out_4bit;
+                    betterNeighborCount = data_in;
+                    
+                    // Compute for the address of betterNeighor
+                    start_rngAddress = 1;
+                    state <= 3;
+                end
+                4'd3: begin
+                    if (done_rng_address) begin
+                        state <= 4;
+                        start_rngAddress <= 0;
+                        rng_address_temp <= rng_address;
+                        address_count <= 16'h668 + rng_address_temp*2;
+                    end
+                    else
+                        state <= 3;
+                end
+                4'd4: begin
+                    nexthop_buf <= data_in;
+                    if (epsilon_buf < epsilon_step)
+                        epsilon_temp <= 0;
+                    else
+                        epsilon_temp <= epsilon_buf - epsilon_step;
 
-                        state <= 3;                 // fetch betterNeighborCount  // nexthop = _better_qvalue[int(math.ceil(which * len(_better_qvalue) - 1))]
-                        address_count <= 16'h68C;   // address of betterNeighborCount
-                        
-                        left = epsilon_buf;         // floatSub( left, right )
-                        right = epsilon_step;       // epsilon = epsilon - epsilon_step
-                    end
-                    else begin
-                        state <= 20;                // bestvalue < (_mybest - _mybest * 0.001)
-                    end
+                    state <= 5;
+                end
+                4'd5 begin
+                    
                 end
                 4'd3: begin
                     betterNeighborCount = data_in;
                     
-                    // address = int(math.ceil(which * len(_better_qvalue) - 1))
                     state <= 4;
                     start_rngAddress = 1;
 
