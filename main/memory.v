@@ -5,7 +5,7 @@
 
 /*  Address List
  *  
- *  (1/8)       [0x0 - 0x07]        amISink/forAggregation FLAGS
+ *  (2/4)       [0x0 - 0x07]        amISink/forAggregation FLAGS
  *  (2/16)      [0x8 - 0x27]        knownSinks  
  *  (2/16)      [0x28 - 0x47]       worstHops
  *  (2/64)      [0x48 - 0xC7]       neighborID
@@ -13,12 +13,16 @@
  *  (2/64)      [0x148 - 0x1C7]     batteryStat
  *  (2/64)      [0x1C8 - 0x247]     qValue
  *  (2/8*64)    [0x248 - 0x647]     sinkIDs
- *  (2/16)      [0x648 - 0x657]     Hop Count Multiplier (Constants)
- *  (2/16)      [0x658 - 0x668]     betterNeighbors
  *
- *  (2/8)       [0x700 - 0x709]     nextsinks
- *  (2/8)       [0x710 - 0x719]     better_qvalue
- *  (2/1)       [0x720 - 0x721]     len(better_qvalue)
+ *  (2/16)      [0x648 - 0x667]     Hop Count Multiplier (Constants)
+ *  (2/16)      [0x668 - 0x687]     betterNeighbors
+ *
+ *  (2/1)       [0x688 - 0x689]     knownSinkCount
+ *  (2/1)       [0x68A - 0x68B]     neighborCount
+ *  (2/1)       [0x68C - 0x68D]     betterNeighborCount      
+ *  (2/64)      [0x68E - 0x70D]     sinkIDCount
+ *  
+ *  243 bytes out
  */
 
 module mem(clock, address, wr_en, data_in, data_out);
