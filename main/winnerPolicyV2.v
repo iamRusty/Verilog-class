@@ -4,7 +4,6 @@
 `define WORD_WIDTH 16
 `define CLOCK_PD 20
 
-`include "floatSubV2.v"
 `include "randomGenerator.v"
 `include "rngAddress.v"
 
@@ -34,13 +33,9 @@ module winnerPolicyV2(
     output [7:0] cstate;
 
     // Registers
-    reg [`WORD_WIDTH-1:0] explore_constant, which, address_count, epsilon_buf, epsilon_temp, _mybest_frac, nexthop_buf; 
+    reg [`WORD_WIDTH-1:0] explore_constant, which, address_count, epsilon_buf, epsilon_temp, nexthop_buf; 
     reg generate_random, done_winnerPolicy_buf;
-    reg [`WORD_WIDTH-1:0] left, right;
     reg [`WORD_WIDTH-1:0] betterNeighborCount;
-    reg [`WORD_WIDTH-1:0] mikko_mult_left, mikko_mult_right, mikko_sub_left, mikko_sub_right, mikko_mult_out, mikko_sub_out, mikko_add_left, mikko_add_right, mikko_add_out;
-    reg mikko_sub_compare;
-    reg [`WORD_WIDTH-1:0] one_right, two_right;
     reg one, two, three;
     reg done_buf;
     reg [8:0] nineninenine;
@@ -48,12 +43,6 @@ module winnerPolicyV2(
     reg [5:0] onezerozeroone;
     reg [31:0] _left2, _right2;
     reg [31:0] _mybest_shifted;
-
-    
-    // floatSub MODULE
-    wire [`WORD_WIDTH-1:0] floatSub_data_out;
-    wire sub_compare;
-    floatSubV2 fsub2(clock, nreset, left, right, floatSub_data_out, sub_compare);
 
     // randomGenerator MODULE
     wire [15:0] rng_out;
@@ -203,85 +192,7 @@ module winnerPolicyV2(
                     state <= 8;
                 end
                 default
-                    state <= 8;
-                
-/*                4'd3: begin
-                    betterNeighborCount = data_in;
-                    
-                    state <= 4;
-                    start_rngAddress = 1;
-
-                    if (sub_compare)
-                        epsilon_temp = floatSub_data_out;
-                    else
-                        epsilon_temp = 0;
-                end
-                4'd4: begin
-                    if (done_rng_address)
-                        state <= 5;
-                    else
-                        state <= 4;
-                end
-                4'd5: begin
-                    start_rngAddress <= 0;
-                    address_count = 16'h68C + rng_address;                    
-                    state <= 6;                 // multiply _mybest and 0.001
-                    mikko_mult_left = _mybest;
-                    mikko_mult_right = 1;       // mikko_mult_out_right = 0.001 
-                end
-                4'd6: begin
-                    nexthop_buf = data_in;
-                    _mybest_frac = mikko_mult_out;
-                    state <= 7;
-                    mikko_sub_left = _mybest;
-                    mikko_sub_right = _mybest_frac;
-                end
-                4'd7: begin
-                    one_right = mikko_sub_out;
-                    state <= 8;
-                    mikko_sub_left = _besthop;
-                    mikko_sub_right = one_right;
-                end
-                4'd8: begin
-                    if (mikko_sub_compare) begin
-                        state <= 11;        // Done
-                        nexthop_buf = _besthop;
-                        one = 0;
-                    end
-                    else begin
-                        one = 1;
-                        state <= 9;
-                        mikko_add_left = _mybest;
-                        mikko_add_right = _mybest_frac;
-                        if (_bestneighborID != MY_NODE_ID) begin
-                            three = 1;
-                        end
-                        else begin
-                            three = 0;
-                        end
-                    end
-                end
-                4'd9: begin
-                    two_right = mikko_add_out;
-                    mikko_sub_left = _bestvalue;
-                    mikko_sub_right = two_right;
-                    state <= 10;
-                end
-                4'd10: begin
-                    two = mikko_sub_compare;
-                    if (one & two & three)
-                        nexthop_buf = _besthop;
-                    else
-                        nexthop_buf = 100;
-
-                    state <= 11;
-                end
-                4'd11: begin
-                    done_buf = 1;
-                end
-                default:
-                    state <= 10;
-*/                    
+                    state <= 8;                 
             endcase
         end
     end
