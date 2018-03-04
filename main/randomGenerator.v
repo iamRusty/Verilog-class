@@ -4,7 +4,7 @@
  *  Reference: https://www.xilinx.com/support/documentation/application_notes/xapp052.pdf
  */
 
-`include "memory.v"
+//`include "memory.v"
 
 module randomGenerator(clock, nreset, rng_out, rng_out_4bit);
     input clock, nreset;

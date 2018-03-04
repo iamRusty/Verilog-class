@@ -82,6 +82,12 @@ module mem(clock, address, wr_en, data_in, data_out);
         // RNG_SEED
         memory['h7FE] = 0;
         memory['h7FF] = 9;
+
+        // betterNeighbor
+        for (i = 0; i < 15; i=i+1) begin
+            memory['h668 + i*2+1] = i;
+            memory['h668 + i*2] = 0;
+        end
     
     end
 

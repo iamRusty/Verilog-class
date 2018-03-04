@@ -1,3 +1,8 @@
+fm:
+	iverilog -o tb_fixedMult tb_fixedMult.v
+	vvp tb_fixedMult
+	gtkwave tb_fixedMult.vcd
+
 reward:
 	iverilog -o tb_reward tb_reward.v
 	vvp tb_reward
@@ -49,3 +54,5 @@ clean:
 	rm -f tb_randomGenerator
 	rm -f tb_rngAddress
 	rm -f tb_rngAddress.vcd
+	rm -f tb_fixedMult.vcd
+	rm -f tb_fixedMult

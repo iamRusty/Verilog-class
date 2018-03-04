@@ -43,6 +43,12 @@ module winnerPolicyV2(
     reg [`WORD_WIDTH-1:0] one_right, two_right;
     reg one, two, three;
     reg done_buf;
+    reg [8:0] nineninenine;
+    reg [24:0] _left, _right;
+    reg [5:0] onezerozeroone;
+    reg [31:0] _left2, _right2;
+    reg [31:0] _mybest_shifted;
+
     
     // floatSub MODULE
     wire [`WORD_WIDTH-1:0] floatSub_data_out;
@@ -57,7 +63,7 @@ module winnerPolicyV2(
     // rngAddress
     wire [`WORD_WIDTH-1:0] rng_address;
     reg start_rngAddress;
-    reg rng_address_temp;
+    reg [15:0] rng_address_temp;
     rngAddress rng_ad1(clock, nreset, start_rngAddress, betterNeighborCount, which, rng_address, done_rng_address);
 
     /*
@@ -81,6 +87,8 @@ module winnerPolicyV2(
             epsilon_buf <= epsilon;
             done_buf = 0;
             start_rngAddress = 0;
+            nineninenine <= 9'b111111111;   // 0.999 in bnary fraction
+            onezerozeroone <= 6'b100001;    // 0.001 in binary fraction
         end
         else begin
             case (state)
@@ -88,7 +96,7 @@ module winnerPolicyV2(
                     if (start_winnerPolicy) begin
                         // Generate explore_constant
                         state <= 1;
-                        explore_constant = rng_out_4bit;
+                        explore_constant <= rng_out_4bit;
                     end
                     else
                         state <= 0;
@@ -98,14 +106,17 @@ module winnerPolicyV2(
                         state <= 2;
 
                         // betterNeighborCount Address
-                        address_count <= address_count <= 16'h68C; 
+                        address_count <= 16'h68C; 
                     end
-                    else
-                        state <= 11;
+                    else begin
+                        // nexthop is less than 0, or explore_constant is less than epsilon
+                        // Pick the best instead of exploring
+                        state <= 5;
+                    end
                 end
                 4'd2: begin
-                    which = rng_out_4bit;
-                    betterNeighborCount = data_in;
+                    which <= rng_out_4bit;
+                    betterNeighborCount <= data_in;
                     
                     // Compute for the address of betterNeighor
                     start_rngAddress = 1;
@@ -115,7 +126,9 @@ module winnerPolicyV2(
                     if (done_rng_address) begin
                         state <= 4;
                         start_rngAddress <= 0;
-                        rng_address_temp <= rng_address;
+                        rng_address_temp = rng_address;
+
+                        // address and index of betterNeighbor
                         address_count <= 16'h668 + rng_address_temp*2;
                     end
                     else
@@ -127,13 +140,72 @@ module winnerPolicyV2(
                         epsilon_temp <= 0;
                     else
                         epsilon_temp <= epsilon_buf - epsilon_step;
-
-                    state <= 5;
-                end
-                4'd5 begin
                     
+                    // Done winnerPolicy
+                    done_winnerPolicy_buf = 1;
+                    state <= 8;
                 end
-                4'd3: begin
+                4'd5: begin            
+                    /*
+                     *  [15:0] _bestvalue   - 12 bits whole, 4 bits fraction
+                     *  [15:0] _mybest      - 12 bits whole, 4 bits fraction
+                     *  [8:0] nineninenine  - 9 bits fraction
+                     *  _left, _right = 12 bits whole, 13 bits fraction
+                     */
+                    _left = {_bestvalue, 9'b0};
+                    _right = _mybest * nineninenine;
+
+                    // Malayong mas malaki ang mybest kaysa bestvalue 
+                    if (_left < _right) begin
+                        one <= 0;
+                        nexthop_buf <= _besthop;
+
+                        // Done winnerPolicy
+                        done_winnerPolicy_buf <= 1;
+                        state <= 8;
+                    end
+                    else begin
+                        one = 1;
+                        state <= 6;
+                    end
+                end
+                4'd6: begin
+                    /*
+                     *  [15:0] _bestvalue   - 12 bits whole, 4 bits fraction
+                     *  [15:0] _mybest      - 12 bits whole, 4 bits fraction
+                     *  [8:0] onezerozeroone - 15 bits fraction
+                     *  _left, _right = 12 bits whole, 19 bits fraction
+                     */
+                    _left2 = {_bestvalue, 15'b0};
+                    _right2 = _mybest * onezerozeroone; // 12 bits whole, 10 bits fraction 
+                    _mybest_shifted = {_mybest, 19'b0};
+                    _right2 = _right2 + _mybest_shifted;
+
+                    if (_left2 < _right2) 
+                        two <= 1;
+                    else
+                        two <= 2;
+
+                    if (_bestneighborID == MY_NODE_ID)
+                        three <= 0;
+                    else
+                        three <= 1;
+
+                    state <= 7;
+                end
+                4'd7: begin
+
+                    if (one & two & three) begin
+                        nexthop_buf <= _besthop;
+                    end
+
+                    done_winnerPolicy_buf <= 1;
+                    state <= 8;
+                end
+                default
+                    state <= 8;
+                
+/*                4'd3: begin
                     betterNeighborCount = data_in;
                     
                     state <= 4;
@@ -209,6 +281,7 @@ module winnerPolicyV2(
                 end
                 default:
                     state <= 10;
+*/                    
             endcase
         end
     end
@@ -216,4 +289,5 @@ module winnerPolicyV2(
     assign nexthop = nexthop_buf;
     assign done_winnerPolicy = done_winnerPolicy_buf;
     assign cstate = state;
+    assign address = address_count;
 endmodule
