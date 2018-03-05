@@ -6,12 +6,13 @@
 
 //`include "memory.v"
 
-module randomGenerator(clock, nreset, mem_data_out, address, rng_out, rng_out_4bit);
+module randomGenerator(clock, nreset, mem_data_out, address, rng_out, rng_out_4bit, ako_boss);
     input clock, nreset;
     input [15:0] mem_data_out;
     output [15:0] address, rng_out, rng_out_4bit;
     reg [15:0] rng_out_buf, address_count;
-    reg feedback;
+    reg feedback, ako_boss_buf;
+    output ako_boss;
 
 /*
     // Memory Module
@@ -28,6 +29,7 @@ module randomGenerator(clock, nreset, mem_data_out, address, rng_out, rng_out_4b
             rng_out_buf <= 5;
             state <= 1;
             address_count <= 16'h7FE;
+            ako_boss_buf <= 1;
         end
         else begin
             case (state)
@@ -35,6 +37,7 @@ module randomGenerator(clock, nreset, mem_data_out, address, rng_out, rng_out_4b
                     // Read RNG_SEED in Memory
                     rng_out_buf <= mem_data_out;
                     state <= 2;
+                    ako_boss_buf <= 0;
                 end
                 3'd2: begin
                     rng_out_buf <= {rng_out_buf[14:0], feedback};
@@ -54,4 +57,5 @@ module randomGenerator(clock, nreset, mem_data_out, address, rng_out, rng_out_4b
     assign rng_out = rng_out_buf;
     assign rng_out_4bit = {12'd0, rng_out_buf[3:0]};
     assign address = address_count;
+    assign ako_boss = ako_boss_buf;
 endmodule

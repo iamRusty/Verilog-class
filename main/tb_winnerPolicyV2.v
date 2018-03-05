@@ -42,7 +42,6 @@ module tb_winnerPolicyV2();
     wire [7:0] cstate;
     winnerPolicyV2 wp2 (clock, nreset, start_winnerPolicy, _mybest, _besthop, _bestvalue, _better_qvalue, _bestneighborID, MY_NODE_ID, address, mem_data_out, epsilon, epsilon_step, winnerPolicy_nexthop, done_winnerPolicy, cstate, rng_out);
 
-
     reg [3:0] state;
     always @ (posedge done_winnerPolicy) begin
         

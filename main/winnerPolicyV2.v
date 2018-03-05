@@ -26,19 +26,21 @@ module winnerPolicyV2(
     rng_address,
     start_rngAddress,
     done_rng_address,
-    mux_select
+    mux_select,
+    betterNeighborCount,
+    which
 );
 
     input clock, nreset, start_winnerPolicy, done_rng_address;
     input [`WORD_WIDTH-1:0] _mybest, _besthop, _bestvalue, _better_qvalue, _bestneighborID, MY_NODE_ID, data_in, epsilon, epsilon_step, rng_out, rng_out_4bit, rng_address;
-    output [`WORD_WIDTH-1:0] address, nexthop;
+    output [`WORD_WIDTH-1:0] address, nexthop, betterNeighborCount, which;
     output done_winnerPolicy, start_rngAddress;
     output [4:0] cstate;
     output [1:0] mux_select;
 
     // Registers
-    reg [`WORD_WIDTH-1:0] explore_constant, which, address_count, epsilon_buf, epsilon_temp, nexthop_buf; 
-    reg [`WORD_WIDTH-1:0] betterNeighborCount, rng_address_temp;
+    reg [`WORD_WIDTH-1:0] explore_constant, which_buf, address_count, epsilon_buf, epsilon_temp, nexthop_buf; 
+    reg [`WORD_WIDTH-1:0] betterNeighborCount_buf, rng_address_temp;
     reg done_winnerPolicy_buf, start_rngAddress_buf;
     reg [1:0] mux_select_buf;
     reg one, two, three;
@@ -85,8 +87,8 @@ module winnerPolicyV2(
                     end
                 end
                 4'd2: begin
-                    which <= rng_out_4bit;
-                    betterNeighborCount <= data_in;
+                    which_buf <= rng_out_4bit;
+                    betterNeighborCount_buf <= data_in;
                     
                     // Compute for the address of betterNeighor
                     start_rngAddress_buf <= 1;
@@ -183,4 +185,6 @@ module winnerPolicyV2(
     assign cstate = state;
     assign address = address_count;
     assign start_rngAddress = start_rngAddress_buf;
+    assign betterNeighborCount = betterNeighborCount_buf;
+    assign which = which_buf;
 endmodule
