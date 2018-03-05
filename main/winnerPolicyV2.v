@@ -4,9 +4,6 @@
 `define WORD_WIDTH 16
 `define CLOCK_PD 20
 
-`include "randomGenerator.v"
-`include "rngAddress.v"
-
 module winnerPolicyV2(
     clock, 
     nreset, 
@@ -23,61 +20,45 @@ module winnerPolicyV2(
     epsilon_step,
     nexthop,
     done_winnerPolicy,
-    cstate
+    cstate,
+    rng_out,
+    rng_out_4bit,
+    rng_address,
+    start_rngAddress,
+    done_rng_address,
+    mux_select
 );
 
-    input clock, nreset, start_winnerPolicy;
-    input [`WORD_WIDTH-1:0] _mybest, _besthop, _bestvalue, _better_qvalue, _bestneighborID, MY_NODE_ID, data_in, epsilon, epsilon_step;
+    input clock, nreset, start_winnerPolicy, done_rng_address;
+    input [`WORD_WIDTH-1:0] _mybest, _besthop, _bestvalue, _better_qvalue, _bestneighborID, MY_NODE_ID, data_in, epsilon, epsilon_step, rng_out, rng_out_4bit, rng_address;
     output [`WORD_WIDTH-1:0] address, nexthop;
-    output done_winnerPolicy;
-    output [7:0] cstate;
+    output done_winnerPolicy, start_rngAddress;
+    output [4:0] cstate;
+    output [1:0] mux_select;
 
     // Registers
     reg [`WORD_WIDTH-1:0] explore_constant, which, address_count, epsilon_buf, epsilon_temp, nexthop_buf; 
-    reg generate_random, done_winnerPolicy_buf;
-    reg [`WORD_WIDTH-1:0] betterNeighborCount;
+    reg [`WORD_WIDTH-1:0] betterNeighborCount, rng_address_temp;
+    reg done_winnerPolicy_buf, start_rngAddress_buf;
+    reg [1:0] mux_select_buf;
     reg one, two, three;
-    reg done_buf;
-    reg [8:0] nineninenine;
-    reg [24:0] _left, _right;
+    reg [9:0] nineninenine;
+    reg [25:0] _left, _right;
     reg [5:0] onezerozeroone;
     reg [31:0] _left2, _right2;
     reg [31:0] _mybest_shifted;
 
-    // randomGenerator MODULE
-    wire [15:0] rng_out;
-    wire [15:0] rng_out_4bit;
-    randomGenerator rng1(clock, nreset, rng_out, rng_out_4bit);
-
-    // rngAddress
-    wire [`WORD_WIDTH-1:0] rng_address;
-    reg start_rngAddress;
-    reg [15:0] rng_address_temp;
-    rngAddress rng_ad1(clock, nreset, start_rngAddress, betterNeighborCount, which, rng_address, done_rng_address);
-
-    /*
-     * State Machine
-     * 0 - Idle/Wait for start_winnerPolicy
-     * 1 - Generate a random number (explore_constant)
-     * 2 - Subtract explore_constant < epsilon
-     * 3 - Evaluate 2
-     * 4 - Generate a random number (which)
-     * 5 - address = which * len( better_qvalue ) - 1
-        epsilon = epsilon - epsilon_step
-     * 
-     */
-
-    reg [7:0] state;
+    reg [4:0] state;
     always @ (posedge clock) begin
         if (!nreset) begin
             state <= 0;
             done_winnerPolicy_buf <= 0;
             nexthop_buf <= 100;     // 100 = -1 for the lack of representation on negative numbers
             epsilon_buf <= epsilon;
-            done_buf = 0;
-            start_rngAddress = 0;
-            nineninenine <= 9'b111111111;   // 0.999 in bnary fraction
-            onezerozeroone <= 6'b100001;    // 0.001 in binary fraction
+            done_winnerPolicy_buf = 0;
+            start_rngAddress_buf = 0;
+            nineninenine <= 10'b1111111111;   // 0.999 in binary fraction ~ 0.9990234375
+            onezerozeroone <= 6'b100001;    // 0.001 in binary fraction ~ 0.001007080078125
         end
         else begin
             case (state)
@@ -108,13 +89,13 @@ module winnerPolicyV2(
                     betterNeighborCount <= data_in;
                     
                     // Compute for the address of betterNeighor
-                    start_rngAddress = 1;
+                    start_rngAddress_buf <= 1;
                     state <= 3;
                 end
                 4'd3: begin
                     if (done_rng_address) begin
                         state <= 4;
-                        start_rngAddress <= 0;
+                        start_rngAddress_buf <= 0;
                         rng_address_temp = rng_address;
 
                         // address and index of betterNeighbor
@@ -138,10 +119,10 @@ module winnerPolicyV2(
                     /*
                      *  [15:0] _bestvalue   - 12 bits whole, 4 bits fraction
                      *  [15:0] _mybest      - 12 bits whole, 4 bits fraction
-                     *  [8:0] nineninenine  - 9 bits fraction
-                     *  _left, _right = 12 bits whole, 13 bits fraction
+                     *  [9:0] nineninenine  - 10 bits fraction
+                     *  _left, _right = 12 bits whole, 14 bits fraction
                      */
-                    _left = {_bestvalue, 9'b0};
+                    _left = {_bestvalue, 10'b0};
                     _right = _mybest * nineninenine;
 
                     // Malayong mas malaki ang mybest kaysa bestvalue 
@@ -201,4 +182,5 @@ module winnerPolicyV2(
     assign done_winnerPolicy = done_winnerPolicy_buf;
     assign cstate = state;
     assign address = address_count;
+    assign start_rngAddress = start_rngAddress_buf;
 endmodule

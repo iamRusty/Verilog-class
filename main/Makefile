@@ -38,6 +38,16 @@ rnga:
 	vvp tb_rngAddress
 	gtkwave tb_rngAddress.vcd
 
+all:
+	iverilog -o tb_all tb_all.v
+	vvp tb_all
+	gtkwave tb_all
+
+all2:
+	iverilog -o tb_all2 tb_all2.v
+	vvp tb_all2
+	gtkwave tb_all2
+
 clean:
 	rm -f a.out
 	rm -f testbench
@@ -56,3 +66,7 @@ clean:
 	rm -f tb_rngAddress.vcd
 	rm -f tb_fixedMult.vcd
 	rm -f tb_fixedMult
+	rm -f tb_all.vcd
+	rm -f tb_all
+	rm -f tb_all2.vcd
+	rm -f tb_all2
