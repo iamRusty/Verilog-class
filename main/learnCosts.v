@@ -7,8 +7,8 @@
 module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fclusterID, address, wr_en, data_in, data_out, reinit, done);
 	input clock, nreset, start;
 	input [`WORD_WIDTH-1:0] fsourceID, fbatteryStat, fValue, fclusterID, data_in;
-	output done, reinit;
-	output [`WORD_WIDTH-1: 0] address, data_out, wr_en;
+	output done, reinit, wr_en;
+	output [`WORD_WIDTH-1: 0] address, data_out;
 
 	// Registers
 	reg [`WORD_WIDTH-1:0] address_count, data_out_buf, neighborCount, knownSinkCount, cur_nID, cur_knownSink, cur_qValue, sinkID_address_buf;
@@ -61,8 +61,10 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 						// para hindi multiply nang multiply sa state
 						sinkID_address_buf <= 16'h248 + 16*n;
 					end
-					else
+					else begin
 						n = n + 1;
+						state <= 3;
+					end
 				end
 				5: begin
 					if (k == knownSinkCount) begin
