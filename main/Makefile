@@ -43,6 +43,11 @@ tb2:
 	vvp testbench2
 	gtkwave testbench2.vcd	
 
+lc:
+	iverilog -o learnCosts learnCosts.v
+	vvp learnCosts
+	gtkwave learnCosts.vcd	
+
 clean:
 	rm -f a.out
 	rm -f testbench
