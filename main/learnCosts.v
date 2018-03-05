@@ -174,4 +174,5 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 	assign address = address_count;
 	assign data_out = data_out_buf;
 	assign reinit = reinit_buf;
+	assign wr_en = wr_en_buf;
 endmodule
