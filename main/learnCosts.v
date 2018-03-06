@@ -51,7 +51,7 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 					end
 				end
 				4: begin
-					cur_nID <= data_in;	// current neighborID
+					cur_nID = data_in;	// current neighborID
 
 					// if found, update the routingTable values
 					if (cur_nID == fsourceID) begin
@@ -105,7 +105,7 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 					state <= 10;
 				end
 				10: begin
-					cur_qValue <= data_in;
+					cur_qValue = data_in;
 					data_out_buf <= cur_qValue;
 					wr_en_buf <= 1;
 
@@ -167,7 +167,7 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 					end
 				end
 				17: begin
-					cur_knownSink <= data_in;
+					cur_knownSink = data_in;
 					data_out_buf <= cur_knownSink;
 					address_count <= sinkID_address_buf + 2*k; // knownSinkCount address
 					wr_en_buf <= 1;
