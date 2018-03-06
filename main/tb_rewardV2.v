@@ -35,11 +35,11 @@ module tb_rewardV2();
     mem m2 (clock, address, wr_en, mem_data_in, mem_data_out);
 
     // REWARD MODULE
-    reg start_reward;
+    reg start_reward, en;
     reg [`WORD_WIDTH-1:0] MY_NODE_ID, MY_CLUSTER_ID, _action, _besthop;
     wire [`WORD_WIDTH-1:0] reward_data_out;
     wire done_reward;
-    rewardV2 r2 (clock, nreset, start_reward, MY_NODE_ID, MY_CLUSTER_ID, _action, _besthop, address, mem_data_out, reward_data_out, done_reward);
+    reward r2 (clock, nreset, en, start_reward, MY_NODE_ID, MY_CLUSTER_ID, _action, _besthop, address, mem_data_out, reward_data_out, done_reward);
 
     // REWARD MODULE INITIAL
     initial begin
@@ -60,14 +60,25 @@ module tb_rewardV2();
     // Reset
     initial begin
         nreset = 1;
-        #5 nreset = 0;
-        #10 nreset = 1;
+        en = 0;
+        #10
+        nreset = 0;
+        #10 
+        nreset = 1;
+        #55
+        en = 1;
+        #20
+        en = 0;
+        #180 
+        en = 1;
+        #180
+        en = 0;
     end
 
     initial begin
         $dumpfile("tb_rewardV2.vcd");
         $dumpvars(0, tb_rewardV2);
-        #300
+        #400
         $finish; 
     end
 
