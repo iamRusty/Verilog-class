@@ -39,6 +39,8 @@ module rngAddress(clock, nreset, start_rng_address, betterNeighborCount, which, 
                     if (betterNeighborCount == rng_address_buf) begin
                         rng_address_buf = 0;
                     end
+                    else
+                        rng_address_buf <= betterNeighborCount;
                 end
                 3'd3: begin
                     done_rng_address_buf <= 1;
