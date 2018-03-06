@@ -11,7 +11,7 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 	output [`WORD_WIDTH-1: 0] address, data_out;
 
 	// Registers
-	reg [`WORD_WIDTH-1:0] address_count, data_out_buf, neighborCount, knownSinkCount, cur_nID, cur_knownSink, cur_qValue, sinkID_address_buf;
+	reg [`WORD_WIDTH-1:0] address_count, data_out_buf, neighborCount, neighborCount_buf, knownSinkCount, cur_nID, cur_knownSink, cur_qValue, sinkID_address_buf;
 	reg done_buf, found, reinit_buf, wr_en_buf;
 	reg [`WORD_WIDTH-1:0] n, k;
 	reg [4:0] state;
@@ -44,7 +44,7 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 				3: begin
 					// if not found, add a new neighbor
 					if (n == neighborCount)
-						state <= 11;
+						state <= 12;
 					else begin
 						address_count <= 16'h48 + n*2; // neighborID address 
 						state <= 4;
@@ -68,8 +68,10 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 				end
 				5: begin
 					if (k == knownSinkCount) begin
-						data_out_buf <= fbatteryStat;
-						address_count <= 16'h148 + n*2; // batteryStat address
+						//data_out_buf <= fbatteryStat;
+						//address_count <= 16'h148 + n*2; // batteryStat address
+						data_out_buf <= k;
+						address_count <= 
 						wr_en_buf <= 1;
 						state <= 8;
 					end
@@ -91,47 +93,55 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 					state <= 5;
 				end
 				8: begin
-					wr_en_buf <= 0;
-					address_count = 16'h1C8 + n*2; // qValue address
+					//wr_en_buf <= 0;
+					data_out_buf <= fbatteryStat;
+					address_count <= 16'h148 + n*2; // batteryStat address
+					wr_en_buf <= 1;
 					state <= 9;
 				end
 				9: begin
+					wr_en_buf <= 0;
+					address_count = 16'h1C8 + n*2; // qValue address
+					state <= 10;
+				end
+				10: begin
 					cur_qValue <= data_in;
 					data_out_buf <= cur_qValue;
 					wr_en_buf <= 1;
 
-					if (cur_qValue < fValue) begin
+					if (cur_qValue < fValue)
 						reinit_buf <= 1;
-						state <= 10;
-						done_buf <= 1;
-					end
 					else
 						reinit_buf <= 0;
-				end
-				10: begin
+
 					done_buf <= 1;
-					state <= 10;
+					state <= 11;
 				end
 				11: begin
+					wr_en_buf <= 0;
+					done_buf <= 1;
+					state <= 11;
+				end
+				12: begin
 					address_count <= 16'h48 + neighborCount*2; // neighborID address
 					data_out_buf <= fsourceID;
 					wr_en_buf <= 1;
-					state <= 12;
+					state <= 13;
 				end
-				12: begin
+				13: begin
 					//wr_en_buf <= 0;
 					address_count <= 16'h148 + neighborCount*2; // batteryStat address
 					data_out_buf <= fbatteryStat;
 					wr_en_buf <= 1;
-					state <= 13;	
+					state <= 14;	
 				end
-				13: begin
+				14: begin
 					address_count <= 16'h1C8 + neighborCount*2; // qValue address
 					data_out_buf <= fValue;
 					wr_en_buf <= 1;
-					state <= 14;
+					state <= 15;
 				end
-				14: begin
+				15: begin
 					address_count <= 16'hC8 + neighborCount*2;
 					data_out_buf <= fclusterID;
 					wr_en_buf <= 1;
@@ -140,32 +150,51 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 					// Para hindi multiply nang multiply sa state 16
 					sinkID_address_buf <= 16'h248 + 16*neighborCount;
 					
-					state <= 15; 
+					state <= 16; 
 				end
-				15: begin
+				16: begin
 					if (k == knownSinkCount) begin
-						state <= 10;
-						done_buf <= 1;
+						state <= 19;
+						address_count <= 16'h68E + 2*neighborCount; // knownSinkCount address
+						data_out_buf <= k;
+						wr_en_buf <= 1;
+						//done_buf <= 1;
 						//reinit <= 0;
 					end
 					else begin
 						address_count <= 16'h8 + k*2; // knownSinks address
-						state <= 16;
+						state <= 17;
 					end
 				end
-				16: begin
+				17: begin
 					cur_knownSink <= data_in;
 					data_out_buf <= cur_knownSink;
-					address_count <= sinkID_address_buf + 2*k;
+					address_count <= sinkID_address_buf + 2*k; // knownSinkCount address
 					wr_en_buf <= 1;
+					state <= 18;
 				end
-				17: begin
+				18: begin
 					wr_en_buf <= 0;
 					k = k + 1;
 					state <= 15;
+
+					neighborCount_buf = neighborCount + 1;
+				end
+				19: begin
+					//wr_en_buf <= 0;
+					data_out_buf <= neighborCount_buf;
+					address_count <= 16'h68A;	// neighborCount address 
+					wr_en_buf <= 1;
+					//done_buf <= 1;
+					state <= 20;
+				end
+				20: begin
+					wr_en_buf <= 0;
+					done_buf <= 1;
+					state <= 11;
 				end
 				default: 
-					state <= 10;
+					state <= 11;
 			endcase
 		end
 	end
