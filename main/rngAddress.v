@@ -34,16 +34,18 @@ module rngAddress(clock, nreset, start_rng_address, betterNeighborCount, which, 
                     end
                 end
                 3'd2: begin
-                    done_rng_address_buf <= 1;
+                    state <= 3;
+                    //done_rng_address_buf <= 1;
                     if (betterNeighborCount == rng_address_buf) begin
                         rng_address_buf = 0;
-                        state <= 3;
                     end
-                    else
-                        state <= 3;
+                end
+                3'd3: begin
+                    done_rng_address_buf <= 1;
+                    state <= 4;
                 end
                 default: 
-                    state <= 3;
+                    state <= 4;
             endcase
         end
     end
