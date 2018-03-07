@@ -8,6 +8,11 @@ wp:
 	vvp tb_winnerPolicy
 	gtkwave tb_winnerPolicy.vcd
 
+wp2:
+	iverilog -o testbench2 testbench2.v
+	vvp testbench2
+	gtkwave testbench2.vcd
+
 rng:
 	iverilog -o tb_randomGenerator tb_randomGenerator.v
 	vvp tb_randomGenerator

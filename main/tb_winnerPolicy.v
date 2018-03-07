@@ -9,7 +9,7 @@
 `include "winnerPolicy.v"
 `include "rngAddress.v"
 
-module testbench2();
+module tb_winnerPolicy();
     reg clock, nreset;
 	reg [`WORD_WIDTH-1:0] address_buf;
 
@@ -21,8 +21,8 @@ module testbench2();
 
 	// RNG MODULE
 	wire [`WORD_WIDTH-1:0] rng_out, rng_out_4bit, address0;
-	wire ako_boss;
-	randomGenerator rng1(clock, nreset, mem_data_out, address0, rng_out, rng_out_4bit, ako_boss);
+	wire internalmux_select;
+	randomGenerator rng1(clock, nreset, mem_data_out, address0, rng_out, rng_out_4bit, internalmux_select);
 
 	// Modulo Module
 	wire [`WORD_WIDTH-1:0] rng_address, betterNeighborCount, which;
@@ -31,19 +31,17 @@ module testbench2();
 
 	// WinnerPolicy Module
 	reg start_winnerPolicy;
-	reg [`WORD_WIDTH-1:0] _mybest, _besthop, _bestvalue, _better_qvalue, _bestneighborID, MY_NODE_ID, epsilon, epsilon_step;
+	reg [`WORD_WIDTH-1:0] mybest, besthop, bestvalue, bestneighborID, MY_NODE_ID, epsilon, epsilon_step;
 	wire [`WORD_WIDTH-1:0] nexthop, address1;
 	wire done_winnerPolicy;
-	wire [4:0] cstate;
-	wire [1:0] mux_select;
-	winnerPolicy wp1(clock, nreset, start_winnerPolicy, _mybest, _besthop, _bestvalue, _better_qvalue, _bestneighborID, MY_NODE_ID,
-						address1, mem_data_out, epsilon, epsilon_step, nexthop, done_winnerPolicy, cstate, rng_out, rng_out_4bit, 
-						rng_address, start_rngAddress, done_rngAddress, mux_select, betterNeighborCount, which
+	winnerPolicy wp1(clock, nreset, start_winnerPolicy, mybest, besthop, bestvalue, bestneighborID, MY_NODE_ID,
+						address1, mem_data_out, epsilon, epsilon_step, nexthop, done_winnerPolicy, rng_out, rng_out_4bit, 
+						rng_address, start_rngAddress, done_rngAddress, betterNeighborCount, which
 	);
 
 	// Mux Address
 	always @ (*) begin
-		if (ako_boss)
+		if (internalmux_select)
 			address_buf = address0;
 		else
 			address_buf = address1;
@@ -60,59 +58,53 @@ module testbench2();
 
     reg [3:0] state;
     always @ (posedge done_winnerPolicy) begin
-        
         case (state)
-            0: begin //testcase 2
+            1: begin //testcase 2
                 #10 nreset = 0;
                 #20 nreset = 1;
                 epsilon = 2;
                 epsilon_step = 1;
-                _mybest = 20;
-                _bestvalue = 5;
-                _besthop = 32;
-                _better_qvalue = 3;
-                _bestneighborID = 4;   
+                mybest = 20;
+                bestvalue = 5;
+                besthop = 32;
+                bestneighborID = 4;   
                 MY_NODE_ID = 5;
-                state <= 1;
+                state = 2;
             end
-            1: begin // testcase 3
+            2: begin // testcase 3
                 #10 nreset = 0;
                 #20 nreset = 1;
                 epsilon = 2;
                 epsilon_step = 1;
-                _mybest = 5;
-                _bestvalue = 20;
-                _besthop = 50;
-                _better_qvalue = 3;
-                _bestneighborID = 4;   
+                mybest = 5;
+                bestvalue = 20;
+                besthop = 50;
+                bestneighborID = 4;   
                 MY_NODE_ID = 5;
+                state = 3;
             end
             default: begin //testcase 3
                 #10 nreset = 0;
                 #20 nreset = 1;
                 epsilon_step = 1;
-                _mybest = 5;
-                _bestvalue = 20;
-                _besthop = 50;
-                _better_qvalue = 3;
-                _bestneighborID = 4;   
+                mybest = 5;
+                bestvalue = 20;
+                besthop = 50;
+                bestneighborID = 4;   
                 MY_NODE_ID = 5;
             end
         endcase
-
-        state = state + 1;
     end
 
 	initial begin
         epsilon = 7;
         epsilon_step = 1;
-        _mybest = 1;
-        _besthop = 50;
-        _better_qvalue = 3;
-        _bestneighborID = 4;   
+        mybest = 1;
+        besthop = 50;
+        bestneighborID = 4;   
         MY_NODE_ID = 5;
-        _bestvalue = 8;
-
+        bestvalue = 8;
+        state = 1;
 		#25 start_winnerPolicy = 1;
 	end
 
