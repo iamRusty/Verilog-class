@@ -1,7 +1,7 @@
 r:
-	iverilog -o tb_rewardV2 tb_rewardV2.v
-	vvp tb_rewardV2
-	gtkwave tb_rewardV2.vcd
+	iverilog -o tb_reward tb_reward.v
+	vvp tb_reward
+	gtkwave tb_reward.vcd
 
 wp:
 	iverilog -o tb_winnerPolicy tb_winnerPolicy.v

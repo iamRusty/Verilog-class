@@ -4,9 +4,9 @@
 module tb_randomGenerator();
     reg clock, nreset;
     wire [15:0] rng_out, rng_out_4bit, address, mem_data_in, mem_data_out;
-    wire wr_en, internalMux_select; 
+    wire wr_en, internalmux_select; 
 
-    randomGenerator rng1(clock, nreset, mem_data_out, address, rng_out, rng_out_4bit, internalMux_select);
+    randomGenerator rng1(clock, nreset, mem_data_out, address, rng_out, rng_out_4bit, internalmux_select);
     mem mem1(clock, address, wr_en, mem_data_in, mem_data_out);    
 
     // Clock 
