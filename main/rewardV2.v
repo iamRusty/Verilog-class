@@ -16,18 +16,6 @@ module reward(clock, nrst, en, start, MY_NODE_ID, MY_CLUSTER_ID, action, besthop
     reg [`WORD_WIDTH-1:0] data_out_buf;
     reg done_buf;
 
-    /*
-     *  State Machine
-     *  de 
-     *  0 - IDLE/Wait for done_prev 
-     *  1 - Process fsourceID
-     *  2 - Process fbatteryStat
-     *  3 - Process fValue
-     *  4 - Process fclusterID
-     *  5 - Process fdestinationID
-     *  6 - done
-     */
-
     reg [3:0] state;
     always @ (posedge clock) begin
         if (!nrst) begin
@@ -53,18 +41,18 @@ module reward(clock, nrst, en, start, MY_NODE_ID, MY_CLUSTER_ID, action, besthop
                 end
                 4'd2: begin
                     state <= 3;
-                    address_count = 16'h148 + MY_CLUSTER_ID*2;
+                    address_count = 16'h148 + {MY_CLUSTER_ID[14:0], 1'd0};
                 end
                 4'd3: begin
                     state <= 4;
-                    address_count =  16'h1C8 + besthop*2;
+                    address_count =  16'h1C8 + {besthop[14:0], 1'd0};
                 end
                 4'd4: begin
                     state <= 5;
                 end
                 4'd5: begin
                     state <= 6;
-                    address_count = 16'h48 + action*2;
+                    address_count = 16'h48 + {action[14:0], 1'd0};
                 end
                 4'd6: begin
                     state <= 0;
@@ -79,8 +67,8 @@ module reward(clock, nrst, en, start, MY_NODE_ID, MY_CLUSTER_ID, action, besthop
 
     always @ (*) begin
         case (state)
-            1: data_out_buf = MY_NODE_ID;
-            4: data_out_buf = MY_CLUSTER_ID;
+            2: data_out_buf = MY_NODE_ID;
+            5: data_out_buf = MY_CLUSTER_ID;
             default: data_out_buf = data_in;
         endcase
     end
