@@ -37,6 +37,7 @@ module mem(clock, address, wr_en, data_in, data_out);
     // INITIAL CONTENTS FOR TESTING PURPOSES ONLY
     integer i;
     initial begin
+    /*
         // knownSinks
         for (i = 0; i < 16; i=i+1) begin
             memory['h8 + i*2+1] = 16 - i;   // totoong value
@@ -92,7 +93,74 @@ module mem(clock, address, wr_en, data_in, data_out);
         // betterNeighborCount
         memory['h68C] = 0;
         memory['h68C + 1] = 3;
-    
+    */
+
+    // LearnCosts test case
+
+        // neighborCount
+        memory['h68A] = 0;
+        memory['h68A + 1] = 2;
+
+        // knownSinkCount
+        memory['h688] = 0;
+        memory['h688 + 1] = 2;
+
+        // knownSink
+        memory['h8] = 0;
+        memory['h8 + 1] = 5;
+
+        memory['h8 + 2] = 0;
+        memory['h8 + 3] = 13;
+
+        // neighborID
+        memory['h48] = 0;
+        memory['h48 + 1] = 30;
+
+        memory['h48 + 2] = 0;
+        memory['h48 + 3] = 31;
+
+        // batteryStat
+        memory['h148] = 0;
+        memory['h148 + 1] = 1;
+
+        memory['h148 + 2] = 0;
+        memory['h148 + 3] = 1;
+
+        // qValue
+        memory['h1C8] = 0;
+        memory['h1C8 + 1] = 5;
+
+        memory['h1C8 + 2] = 0;
+        memory['h1C8 + 3] = 7; 
+
+        // Cluster ID
+        memory['hC8] = 0;
+        memory['hC8 + 1] = 2;
+
+        memory['hC8 + 2] = 0;
+        memory['hC8 + 3] = 3;
+
+        // sinkIDcount
+        memory['h68E] = 0;
+        memory['h68E + 1] = 2;
+
+        memory['h68E + 2] = 0;
+        memory['h68E + 3] = 2;
+
+        // sinkIDs
+        // nei_1
+        memory['h248] = 0;
+        memory['h248 + 1] = 5;
+
+        memory['h248 + 2] = 0;
+        memory['h248 + 3] = 10;        
+
+        // nei_2
+        memory['h248 + 16] = 0;
+        memory['h248 + 16 + 1] = 13;
+
+        memory['h248 + 16 + 2] = 0;
+        memory['h248 + 16 + 3] = 22;
     end
 
 	//READ PORT

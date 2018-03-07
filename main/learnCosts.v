@@ -5,7 +5,7 @@
 `define CLOCK_PD 20
 
 module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterID, address, wr_en, data_in, data_out, reinit, done);
-	input clock, nreset, start;
+	input clock, nrst, start;
 	input [`WORD_WIDTH-1:0] fsourceID, fbatteryStat, fValue, fclusterID, data_in;
 	output done, reinit, wr_en;
 	output [`WORD_WIDTH-1: 0] address, data_out;
@@ -67,10 +67,10 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 				end
 				5: begin
 					if (k == knownSinkCount) begin
-						//data_out_buf <= fbatteryStat;
+						//data_out_buf = fbatteryStat;
 						//address_count <= 16'h148 + n*2; // batteryStat address
-						data_out_buf <= k;
-						address_count <= 16'h68E + 2*
+						data_out_buf = k;
+						address_count <= 16'h68E + 2*k; // sinkIDCount address
 						wr_en_buf <= 1;
 						state <= 8;
 					end
@@ -93,7 +93,7 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 				end
 				8: begin
 					//wr_en_buf <= 0;
-					data_out_buf <= fbatteryStat;
+					data_out_buf = fbatteryStat;
 					address_count <= 16'h148 + n*2; // batteryStat address
 					wr_en_buf <= 1;
 					state <= 9;
@@ -105,7 +105,7 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 				end
 				10: begin
 					cur_qValue = data_in;
-					data_out_buf <= cur_qValue;
+					data_out_buf = cur_qValue;
 					wr_en_buf <= 1;
 
 					if (cur_qValue < fValue)
@@ -113,7 +113,6 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 					else
 						reinit_buf <= 0;
 
-					done_buf <= 1;
 					state <= 11;
 				end
 				11: begin
@@ -123,26 +122,26 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 				end
 				12: begin
 					address_count <= 16'h48 + neighborCount*2; // neighborID address
-					data_out_buf <= fsourceID;
+					data_out_buf = fsourceID;
 					wr_en_buf <= 1;
 					state <= 13;
 				end
 				13: begin
 					//wr_en_buf <= 0;
 					address_count <= 16'h148 + neighborCount*2; // batteryStat address
-					data_out_buf <= fbatteryStat;
+					data_out_buf = fbatteryStat;
 					wr_en_buf <= 1;
 					state <= 14;	
 				end
 				14: begin
 					address_count <= 16'h1C8 + neighborCount*2; // qValue address
-					data_out_buf <= fValue;
+					data_out_buf = fValue;
 					wr_en_buf <= 1;
 					state <= 15;
 				end
 				15: begin
 					address_count <= 16'hC8 + neighborCount*2;
-					data_out_buf <= fclusterID;
+					data_out_buf = fclusterID;
 					wr_en_buf <= 1;
 					k <= 0;
 
@@ -154,10 +153,9 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 				16: begin
 					if (k == knownSinkCount) begin
 						state <= 19;
-						address_count <= 16'h68E + 2*neighborCount; // knownSinkCount address
-						data_out_buf <= k;
+						address_count <= 16'h68E + 2*neighborCount; // sinkIDCount address
+						data_out_buf = k;
 						wr_en_buf <= 1;
-						//done_buf <= 1;
 						//reinit <= 0;
 					end
 					else begin
@@ -167,7 +165,7 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 				end
 				17: begin
 					cur_knownSink = data_in;
-					data_out_buf <= cur_knownSink;
+					data_out_buf = cur_knownSink;
 					address_count <= sinkID_address_buf + 2*k; // knownSinkCount address
 					wr_en_buf <= 1;
 					state <= 18;
@@ -175,21 +173,16 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 				18: begin
 					wr_en_buf <= 0;
 					k = k + 1;
-					state <= 15;
-
-					neighborCount_buf = neighborCount + 1;
+					state <= 16;
 				end
 				19: begin
-					//wr_en_buf <= 0;
-					data_out_buf <= neighborCount_buf;
+					data_out_buf = neighborCount + 1;
 					address_count <= 16'h68A;	// neighborCount address 
 					wr_en_buf <= 1;
-					//done_buf <= 1;
 					state <= 20;
 				end
 				20: begin
 					wr_en_buf <= 0;
-					done_buf <= 1;
 					state <= 11;
 				end
 				default: 
