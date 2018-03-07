@@ -1,10 +1,10 @@
 `timescale 1ns/1ps
-`define MEM_DEPTH  1024
+`define MEM_DEPTH  2048
 `define MEM_WIDTH  8
 `define WORD_WIDTH 16
 `define CLOCK_PD 20
 
-module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fclusterID, address, wr_en, data_in, data_out, reinit, done);
+module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterID, address, wr_en, data_in, data_out, reinit, done);
 	input clock, nreset, start;
 	input [`WORD_WIDTH-1:0] fsourceID, fbatteryStat, fValue, fclusterID, data_in;
 	output done, reinit, wr_en;
@@ -17,9 +17,8 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 	reg [4:0] state;
 
 	always @ (posedge clock) begin
-		if (!nreset) begin
+		if (!nrst) begin
 			done_buf <= 0;
-			address_count <= 16'h68A; // neighborCount address
 			state <= 0;
 			found <= 0;
 			reinit_buf <= 0;
@@ -71,7 +70,7 @@ module learnCosts(clock, nreset, start, fsourceID, fbatteryStat, fValue, fcluste
 						//data_out_buf <= fbatteryStat;
 						//address_count <= 16'h148 + n*2; // batteryStat address
 						data_out_buf <= k;
-						address_count <= 
+						address_count <= 16'h68E + 2*
 						wr_en_buf <= 1;
 						state <= 8;
 					end

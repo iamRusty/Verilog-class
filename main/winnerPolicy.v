@@ -4,351 +4,187 @@
 `define WORD_WIDTH 16
 `define CLOCK_PD 20
 
-`include "floatRNG.v"
-`include "floatSub.v"
-
 module winnerPolicy(
     clock, 
-    nreset,
-    epsilon,
+    nreset, 
+    start_winnerPolicy,
     _mybest,
-    _besthop,       
+    _besthop,
     _bestvalue,
+    _better_qvalue,
     _bestneighborID,
     MY_NODE_ID,
-    done_prev, 
-    done,
-    nexthop,
+    address,
+    data_in,
+    epsilon,
     epsilon_step,
-    epsilon_out
-    );
+    nexthop,
+    done_winnerPolicy,
+    cstate,
+    rng_out,
+    rng_out_4bit,
+    rng_address,
+    start_rngAddress,
+    done_rng_address,
+    mux_select,
+    betterNeighborCount,
+    which
+);
 
-    input clock, nreset;
-    input [15:0] epsilon;           // float
-    input [15:0] _mybest;           // float
-    input [15:0] _besthop;          // neighborID
-    input [15:0] _bestvalue;        // float
-    input [15:0] _bestneighborID;   // neighborID
-    input [15:0] MY_NODE_ID;
+    input clock, nreset, start_winnerPolicy, done_rng_address;
+    input [`WORD_WIDTH-1:0] _mybest, _besthop, _bestvalue, _better_qvalue, _bestneighborID, MY_NODE_ID, data_in, epsilon, epsilon_step, rng_out, rng_out_4bit, rng_address;
+    output [`WORD_WIDTH-1:0] address, nexthop, betterNeighborCount, which;
+    output done_winnerPolicy, start_rngAddress;
+    output [4:0] cstate;
+    output [1:0] mux_select;
 
-    input done_prev;
-    output done;
-    output [15:0] nexthop;
-    input [15:0] epsilon_step;
-    output [15:0] epsilon_out;
-
-    reg [15:0] explore_constant;    // float
-
-    // floatRNG Module
-    reg call_fRNG;
-    wire [15:0] rng_data_out;
-    floatRNG fRNG1(clock, nreset, call_fRNG, rng_data_out);
-
-    // floatSub Module
-    reg call_fSub;
-    wire [15:0] fSub_data_out;
-    wire sub_compare;
-    reg [15:0] left, right;
-    floatSub fSub1(clock, nreset, call_fSub, left, right, fSub_data_out, sub_compare);
-
-    reg [15:0] which;
-    // (COMBINATIONAL) explore_constant and which generator 
-    always @ (*) begin
-        if (call_fRNG) begin
-            explore_constant = rng_data_out;
-            which = rng_data_out;
-        end
-        else begin
-            explore_constant <= 0;
-            which <= 0;
-        end
-    end      
-
-    // (COMBINATIONAL) call_fRNG Generator
-    always @ (*) begin
-        case (state)
-            1: call_fRNG <= 1;
-            5: call_fRNG <= 1;
-            default:    call_fRNG <= 0;
-        endcase
-    end
-
-    // explore_constant < epsilon ?
-    // (COMBINATIONAL) Compare explore_constant and epsilon
-    // Already taken care of by FSM
-
-    // state12_reg
-    reg [15:0] state12_reg;
-    always @ (*) begin
-        if (state == 13)
-            state12_reg = fSub_data_out;
-        else
-            state12_reg = 0;
-    end
-
-    // state15_reg_sub
-    reg [15:0] state15_reg_sub;
-    reg [15:0] state15_reg_add;
-    always @ (*) begin
-        if (state == 15) begin
-            state15_reg_sub = 1; // Output of floatSub
-            state15_reg_add = 1; // Output of floatAdd
-        end
-        else begin
-            state15_reg_sub = 1; // Arbitrary
-            state15_reg_add = 1; // Arbitrary
-        end
-    end
-
-    // Simplifying the long if
+    // Registers
+    reg [`WORD_WIDTH-1:0] explore_constant, which_buf, address_count, epsilon_buf, epsilon_temp, nexthop_buf; 
+    reg [`WORD_WIDTH-1:0] betterNeighborCount_buf, rng_address_temp;
+    reg done_winnerPolicy_buf, start_rngAddress_buf;
+    reg [1:0] mux_select_buf;
     reg one, two, three;
-    always @ (*) begin
-        case (state)
-            16: begin
-                if (_bestneighborID != MY_NODE_ID)
-                    three = 1;
-                else
-                    three = 0;
+    reg [9:0] nineninenine;
+    reg [25:0] _left, _right;
+    reg [5:0] onezerozeroone;
+    reg [31:0] _left2, _right2;
+    reg [31:0] _mybest_shifted;
 
-                if (sub_compare)
-                    one = 0;
-                else
-                    one = 1;
-            end
-            17: 
-                if (sub_compare)
-                    two = 1;
-                else
-                    two = 0;
-            default: begin
-                one = 0;
-                two = 0;
-                three = 0;
-            end
-        endcase
-    end
-
-    reg inside;
-    always @ (*) begin
-        if (one & two & three)
-            inside = 1;
-        else
-            inside = 0;
-    end
-
-    // (COMBINATIONAL) call_fSub Generator and Arguments
-    always @ (*) begin
-        case (state)
-            2:  begin
-                left = explore_constant;
-                right = epsilon_buf;
-                call_fSub = 1;
-            end
-            7:  begin
-                left = epsilon_buf;
-                right = epsilon_step;
-                call_fSub = 1;
-            end
-            10: begin
-                left = nexthop_buf;
-                right = 0;
-                call_fSub = 1;
-            end
-            12: begin
-                left = _mybest;
-                right = _mybest * 1; // floatMult(_mybest * 0.001)
-                call_fSub = 1;
-            end
-            13: begin
-                left = _bestvalue;
-                right = state12_reg;
-                call_fSub = 1;
-            end
-            15: begin
-                left = _mybest;
-                right = _mybest * 1; // floatMult(_myest * 0.001)
-                call_fSub = 1;
-                // call_fAdd;
-            end
-            16: begin
-                left = _bestvalue;
-                right = state15_reg_sub;
-                call_fSub = 1;
-            end
-            17: begin
-            end
-            default: call_fSub <= 0;
-        endcase
-    end
-
-
-
-    // NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT
-    // NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT
-    // NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT
-    // NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT
-    // NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT NOT
-    // nexthop = _better_qvalue[int(math.ceil(which * len(_better_qvalue) - 1))]
-    // Must be Combinational
-    reg [15:0] nexthop_buf;
-    always @ (posedge clock) begin
-        if (!nreset)
-            nexthop_buf <= 0;
-        else begin
-            nexthop_buf <= 1;
-        end
-    end
-
-
-    // SEEMS WRONG
-    // (COMBINATIONAL) epsilon -= epsilon_step
-    reg [15:0] epsilon_temp, epsilon_buf;
-/*
-    always @ (*) begin
-        if (state == 7)
-            epsilon_temp = epsilon_buf - epsilon_step;  // Replace with floatSub
-        else
-            epsilon_temp <= 0;
-    end
-*/
-
-
-    reg [7:0] tick;
-    // Tick Counter
-    always @ (posedge clock) begin
-        if (!nreset)
-            tick <= 0;
-        else
-            if (state == 0)
-                tick <= 0;
-            else
-                tick <= tick + 1;
-    end
-
-    // Tick More
-    always @ (posedge done_prev)
-        tick <= 0;
- 
     reg [4:0] state;
     always @ (posedge clock) begin
-        if (!nreset)
-            state <=0;
+        if (!nreset) begin
+            state <= 0;
+            done_winnerPolicy_buf <= 0;
+            nexthop_buf <= 100;     // 100 = -1 for the lack of representation on negative numbers
+            epsilon_buf <= epsilon;
+            done_winnerPolicy_buf = 0;
+            start_rngAddress_buf = 0;
+            nineninenine <= 10'b1111111111;   // 0.999 in binary fraction ~ 0.9990234375
+            onezerozeroone <= 6'b100001;    // 0.001 in binary fraction ~ 0.001007080078125
+        end
         else begin
-            case(state)
-                0:  // Idle
-                    if (done_prev)
+            case (state)
+                4'd0: begin
+                    if (start_winnerPolicy) begin
+                        // Generate explore_constant
                         state <= 1;
+                        explore_constant <= rng_out_4bit;
+                    end
                     else
                         state <= 0;
-                1:  // Generate explore_constant
-                    if (tick < 3)
-                        state <= 1;
-                    else
+                end
+                4'd1: begin
+                    if (explore_constant < epsilon) begin
                         state <= 2;
-                2:  // Compare explore_constant and epsilon
-                    if (tick < 6)
-                        state <= 2;
-                    else
-                        state <= 3;
-                3:  // Wait for floatSub
-                    if (tick < 9) begin
-                        state <= 3;
-                        call_fSub <= 0;
+
+                        // betterNeighborCount Address
+                        address_count <= 16'h68C; 
                     end
-                    else
+                    else begin
+                        // nexthop is less than 0, or explore_constant is less than epsilon
+                        // Pick the best instead of exploring
+                        state <= 5;
+                    end
+                end
+                4'd2: begin
+                    which_buf <= rng_out_4bit;
+                    betterNeighborCount_buf <= data_in;
+                    
+                    // Compute for the address of betterNeighor
+                    start_rngAddress_buf <= 1;
+                    state <= 3;
+                end
+                4'd3: begin
+                    if (done_rng_address) begin
                         state <= 4;
-                4:  // Make decision for 1st if
-                    if (sub_compare == 0)   // Get Out!
-                        state <= 11;    // if (nexthop < 0)
+                        start_rngAddress_buf <= 0;
+                        rng_address_temp = rng_address;
+
+                        // address and index of betterNeighbor
+                        address_count <= 16'h668 + rng_address_temp*2;
+                    end
                     else
-                        state <= 5;
-                5:  // Which generator
-                    if (tick < 15)
-                        state <= 5;
+                        state <= 3;
+                end
+                4'd4: begin
+                    nexthop_buf <= data_in;
+                    if (epsilon_buf < epsilon_step)
+                        epsilon_temp <= 0;
                     else
-                        state <= 6;
-                6:  // nexthop = _better_qvalue[int(math.ceil(which * len(_better_qvalue) - 1))]
-                    if (tick < 18)
-                        state <= 6;
-                    else
-                        state <= 7;
-                7:  // epsilon -= epislon_step
-                    if (tick < 21)
-                        state <= 7;
-                    else
+                        epsilon_temp <= epsilon_buf - epsilon_step;
+                    
+                    // Done winnerPolicy
+                    done_winnerPolicy_buf = 1;
+                    state <= 8;
+                end
+                4'd5: begin            
+                    /*
+                     *  [15:0] _bestvalue   - 12 bits whole, 4 bits fraction
+                     *  [15:0] _mybest      - 12 bits whole, 4 bits fraction
+                     *  [9:0] nineninenine  - 10 bits fraction
+                     *  _left, _right = 12 bits whole, 14 bits fraction
+                     */
+                    _left = {_bestvalue, 10'b0};
+                    _right = _mybest * nineninenine;
+
+                    // Malayong mas malaki ang mybest kaysa bestvalue 
+                    if (_left < _right) begin
+                        one <= 0;
+                        nexthop_buf <= _besthop;
+
+                        // Done winnerPolicy
+                        done_winnerPolicy_buf <= 1;
                         state <= 8;
-                8:  // wait for floatSub
-                    if (tick < 24) begin
-                        state <= 8;
-                        call_fSub <= 0;
                     end
-                    else
-                        state <= 9;
-                9:  // if (epsilon < 0)
-                    if (sub_compare == 1) begin
-                        //state <= 10;    // epsilon = float(0)
-                        epsilon_temp <= 0;   // separate this later
+                    else begin
+                        one = 1;
+                        state <= 6;
                     end
+                end
+                4'd6: begin
+                    /*
+                     *  [15:0] _bestvalue   - 12 bits whole, 4 bits fraction
+                     *  [15:0] _mybest      - 12 bits whole, 4 bits fraction
+                     *  [8:0] onezerozeroone - 15 bits fraction
+                     *  _left, _right = 12 bits whole, 19 bits fraction
+                     */
+                    _left2 = {_bestvalue, 15'b0};
+                    _right2 = _mybest * onezerozeroone; // 12 bits whole, 10 bits fraction 
+                    _mybest_shifted = {_mybest, 19'b0};
+                    _right2 = _right2 + _mybest_shifted;
+
+                    if (_left2 < _right2) 
+                        two <= 1;
                     else
-                        state <= 11;    // if (nexthop < 0)
-                10: // wait for floatSub
-                    if (tick < 27)  
-                        state <= 10;
+                        two <= 2;
+
+                    if (_bestneighborID == MY_NODE_ID)
+                        three <= 0;
                     else
-                        state <= 11;
-                11: // if (nexthop < 0)
-                    if (sub_compare == 1) begin
-                        state <= 12;
-                        call_fSub <= 0;
+                        three <= 1;
+
+                    state <= 7;
+                end
+                4'd7: begin
+
+                    if (one & two & three) begin
+                        nexthop_buf <= _besthop;
                     end
-                    else
-                        state <= 19;
-                12: // _mybest - _mybest * 0.001
-                    if (tick < 33) 
-                        state <= 12;
-                    else
-                        state <= 13;
-                13: // wait for fSub
-                    if (tick < 36) begin
-                        state <= 13;
-                        call_fSub <= 0;
-                    end
-                    else
-                        state <= 14;
-                14: // if (_bestvalue < (_mybest - _mybest * 0.001))
-                    if (sub_compare == 1) begin
-                        nexthop_buf = _besthop;
-                        state <= 19; 
-                    end
-                    else
-                        state <= 15;
-                15: // _mybest - _mybest * 0.001 and _mybest + _mybest * 0.001
-                    if (tick < 42)
-                        state <= 15;
-                    else
-                        state <= 16;
-                16: // (_bestvalue > ( (_mybest - _mybest * 0.001) and (_bestneighborID != MY_NODE_ID)
-                    if (tick < 45)
-                        state <= 16;
-                    else
-                        state <= 17;
-                17: // (_bestvalue < (_mybest + _mybest * 0.001))
-                    if (tick < 48)
-                        state <= 17;
-                    else
-                        state <= 18; // done
-                18: // Pinakahuling if
-                    if (inside) begin
-                        nexthop_buf = _besthop;
-                        state <= 19;
-                    end
-                    else 
-                        state <= 19; 
-                default:
-                    state <= 19;    // done
+
+                    done_winnerPolicy_buf <= 1;
+                    state <= 8;
+                end
+                default
+                    state <= 8;                 
             endcase
         end
     end
 
-    assign done = (state == 19) ? 1:0;
+    assign nexthop = nexthop_buf;
+    assign done_winnerPolicy = done_winnerPolicy_buf;
+    assign cstate = state;
+    assign address = address_count;
+    assign start_rngAddress = start_rngAddress_buf;
+    assign betterNeighborCount = betterNeighborCount_buf;
+    assign which = which_buf;
 endmodule
