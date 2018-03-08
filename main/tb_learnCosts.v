@@ -8,7 +8,7 @@
 `include "memory.v"
 
 module tb_learnCosts();
-	reg clock, nrst;
+	reg clock, nrst, en;
 
 	// Memory Module
 	wire wr_en;
@@ -16,10 +16,9 @@ module tb_learnCosts();
 	mem mem1(clock, address, wr_en, mem_data_in, mem_data_out);
 
 	// learnCosts Module
-	reg start;	
 	reg [`WORD_WIDTH-1:0] fsourceID, fbatteryStat, fValue, fclusterID;
 	wire reinit, done;
-	learnCosts lc1(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterID, address, wr_en, mem_data_out, mem_data_in, reinit, done);
+	learnCosts lc1(clock, nrst, en, fsourceID, fbatteryStat, fValue, fclusterID, address, wr_en, mem_data_out, mem_data_in, reinit, done);
     
     // Initial Values
     initial begin
@@ -44,19 +43,28 @@ module tb_learnCosts();
 
     // Reset
     initial begin
-        start = 0;
+        en = 0;
         nrst = 1;
         #5 nrst = 0;
         #10 
         nrst = 1;
-        #5
-        start = 1;
+        #50
+        en = 1;
+        #20
+        en = 0;
+        #50
+        #450
+        #50
+        en = 1;
+        #20
+        en = 0;
+        
     end
 
     initial begin
         $dumpfile("tb_learnCosts.vcd");
         $dumpvars(0, tb_learnCosts);
-        #500
+        #1000
         $finish; 
     end
 endmodule

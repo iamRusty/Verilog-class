@@ -4,8 +4,8 @@
 `define WORD_WIDTH 16
 `define CLOCK_PD 20
 
-module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterID, address, wr_en, data_in, data_out, reinit, done);
-	input clock, nrst, start;
+module learnCosts(clock, nrst, en, fsourceID, fbatteryStat, fValue, fclusterID, address, wr_en, data_in, data_out, reinit, done);
+	input clock, nrst, en;
 	input [`WORD_WIDTH-1:0] fsourceID, fbatteryStat, fValue, fclusterID, data_in;
 	output done, reinit, wr_en;
 	output [`WORD_WIDTH-1: 0] address, data_out;
@@ -19,7 +19,7 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 	always @ (posedge clock) begin
 		if (!nrst) begin
 			done_buf <= 0;
-			state <= 0;
+			state <= 21;
 			wr_en_buf <= 0;
 			found <= 0;
 			reinit_buf <= 0;
@@ -119,7 +119,7 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 				11: begin
 					wr_en_buf <= 0;
 					done_buf <= 1;
-					state <= 11;
+					state <= 21;
 				end
 				12: begin
 					address_count <= 16'h48 + neighborCount*2; // neighborID address
@@ -186,8 +186,21 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 					wr_en_buf <= 0;
 					state <= 11;
 				end
+				21: begin
+					if (en) begin
+						state <= 0;
+						done_buf <= 0;
+						wr_en_buf <= 0;
+						found <= 0;
+						reinit_buf <= 0;
+						n <= 0;
+						k <= 0;
+					end
+					else
+						state <= 21;
+				end
 				default: 
-					state <= 11;
+					state <= 21;
 			endcase
 		end
 	end
