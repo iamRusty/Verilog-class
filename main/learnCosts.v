@@ -20,6 +20,7 @@ module learnCosts(clock, nrst, start, fsourceID, fbatteryStat, fValue, fclusterI
 		if (!nrst) begin
 			done_buf <= 0;
 			state <= 0;
+			wr_en_buf <= 0;
 			found <= 0;
 			reinit_buf <= 0;
 			n <= 0;
