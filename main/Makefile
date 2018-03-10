@@ -28,6 +28,11 @@ lc:
 	vvp tb_learnCosts
 	gtkwave tb_learnCosts.vcd	
 
+s:
+	iverilog -o tb_selectMyAction tb_selectMyAction.v
+	vvp tb_selectMyAction
+	gtkwave tb_selectMyAction.vcd	
+
 clean:
 	rm -f a.out
 	rm -f tb_reward
@@ -38,5 +43,8 @@ clean:
 	rm -f tb_rngAddress.vcd
 	rm -f tb_winnerPolicy.vcd
 	rm -f tb_winnerPolicy
-	rm -f tb_learnCosts
 	rm -f tb_learnCosts.vcd
+	rm -f tb_learnCosts
+	rm -f tb_selectMyAction.vcd
+	rm -f tb_selectMyAction
+
