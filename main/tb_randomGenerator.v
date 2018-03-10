@@ -2,12 +2,11 @@
 `include "memory.v"
 
 module tb_randomGenerator();
-    reg clock, nreset;
-    wire [15:0] rng_out, rng_out_4bit, address, mem_data_in, mem_data_out;
-    wire wr_en, internalmux_select; 
+    reg clock, nrst, en_rng;
+    wire [15:0] rng_out, rng_out_4bit;
+    wire done;
 
-    randomGenerator rng1(clock, nreset, mem_data_out, address, rng_out, rng_out_4bit, internalmux_select);
-    mem mem1(clock, address, wr_en, mem_data_in, mem_data_out);    
+    randomGenerator rng1(clock, nrst, rng_out, rng_out_4bit, en_rng, done);
 
     // Clock 
     initial begin
@@ -17,8 +16,13 @@ module tb_randomGenerator();
 
     // Reset
     initial begin
-        nreset = 0;
-        #25 nreset = 1;
+        #15;
+        nrst = 0;
+        #20 nrst = 1;
+        #20 en_rng = 1;
+        #20 en_rng = 0;
+        #100 en_rng = 1;
+        #20 en_rng = 0;
     end
 
     initial begin
