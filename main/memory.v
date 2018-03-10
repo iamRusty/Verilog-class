@@ -37,7 +37,7 @@ module mem(clock, address, wr_en, data_in, data_out);
     // INITIAL CONTENTS FOR TESTING PURPOSES ONLY
     integer i;
     initial begin
-    /*
+    
         // knownSinks
         for (i = 0; i < 16; i=i+1) begin
             memory['h8 + i*2+1] = 16 - i;   // totoong value
@@ -80,21 +80,36 @@ module mem(clock, address, wr_en, data_in, data_out);
 
         // better_qvalue
 
+
+    // WinnerPolicy testcase
+/*        // epsilon
+        memory['h4] = 0;    // testcase 1
+        memory['h5] = 7;
+*/
+
+        memory['h4] = 0;    // testcase 2 and 3
+        memory['h5] = 7;
+
+
         // RNG_SEED
         memory['h7FE] = 0;
         memory['h7FF] = 5;
 
         // betterNeighbor
-        for (i = 0; i < 3; i=i+1) begin
-            memory['h668 + i*2+1] = i;
-            memory['h668 + i*2] = 0;
-        end
+        memory['h668] = 0;
+        memory['h668 + 1] = 35;
+
+        memory['h668 + 2] = 0;
+        memory['h668 + 3] = 51;
+
+        memory['h668 + 4] = 0;
+        memory['h668 + 5] = 77;
 
         // betterNeighborCount
         memory['h68C] = 0;
         memory['h68C + 1] = 3;
-    */
-
+    
+/*
     // LearnCosts test case
 
         // neighborCount
@@ -161,6 +176,7 @@ module mem(clock, address, wr_en, data_in, data_out);
 
         memory['h248 + 16 + 2] = 0;
         memory['h248 + 16 + 3] = 22;
+*/
     end
 
 	//READ PORT

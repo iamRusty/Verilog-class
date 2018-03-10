@@ -34,9 +34,11 @@ module rngAddress(clock, nrst, start_rng_address, betterNeighborCount, which, rn
 				end
 				3'd2: begin
 					done_rng_address_buf <= 1;
+					state <= 3;
 				end
+				3'd3: state <= 4;	// Extra clock para hindi magconflict yung start rng at done rng triggers
 				default: 
-                    state <= 2;
+                    state <= 0;
 			endcase
 		end
 	end
