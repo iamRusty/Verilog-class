@@ -35,7 +35,7 @@ module mem(clock, address, wr_en, data_in, data_out);
 	reg [`MEM_WIDTH-1:0] memory [0:`MEM_DEPTH-1];
 
     initial begin
-        $readmemh("mem.txt", memory);
+        $readmemh("mem_lc1.txt", memory);
     end
 
     // INITIAL CONTENTS FOR TESTING PURPOSES ONLY
@@ -64,9 +64,9 @@ module mem(clock, address, wr_en, data_in, data_out);
         memory['h68C] = 0;
         memory['h68C + 1] = 3;
 */ 
-/*
-    // LearnCosts test case
 
+    // LearnCosts test case
+/*
         // neighborCount
         memory['h68A] = 0;
         memory['h68A + 1] = 2;

@@ -16,14 +16,14 @@ module tb_learnCosts();
 	mem mem1(clock, address, wr_en, mem_data_in, mem_data_out);
 
 	// learnCosts Module
-	reg [`WORD_WIDTH-1:0] fsourceID, fbatteryStat, fValue, fclusterID;
+	reg [`WORD_WIDTH-1:0] fsourceID, fbatteryStat, fValue, fclusterID, initial_epsilon;
 	wire reinit, done;
-	learnCosts lc1(clock, nrst, en, fsourceID, fbatteryStat, fValue, fclusterID, address, wr_en, mem_data_out, mem_data_in, reinit, done);
-    
+	learnCosts lc1(clock, nrst, en, fsourceID, fbatteryStat, fValue, fclusterID, initial_epsilon, address, wr_en, mem_data_out, mem_data_in, done);
     // Initial Values
     initial begin
         // Add new neighbor 
         /*fsourceID = 1;
+        initial_epsilon = 1;
         fbatteryStat = 5;
         fValue = 10;
         fclusterID = 11;*/
@@ -33,6 +33,7 @@ module tb_learnCosts();
         fbatteryStat = 5;
         fValue = 10;
         fclusterID = 11;
+        initial_epsilon = 1;
     end
 
 	// Clock
@@ -64,7 +65,7 @@ module tb_learnCosts();
     initial begin
         $dumpfile("tb_learnCosts.vcd");
         $dumpvars(0, tb_learnCosts);
-        #1000
+        #1200
         $finish; 
     end
 endmodule
