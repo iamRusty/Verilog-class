@@ -1,6 +1,3 @@
-`timescale 1ns/1ps
-`define MEM_DEPTH  2048
-`define MEM_WIDTH  8
 `define WORD_WIDTH 16
 
 /* Possible Actions
@@ -10,9 +7,9 @@
  * self (CH role)
  */
 
-module selectMyAction(clock, nrst, start, address, wr_en, nexthop, nextsinks, rng_in, action, data_out, forAggregation, done);
-	input clock, nrst, start;
-	input [`WORD_WIDTH-1:0] nexthop, nextsinks, rng_in;
+module selectMyAction(clock, nrst, en, start, address, wr_en, nexthop, nextsinks, action, data_out, forAggregation, done);
+	input clock, nrst, en, start;
+	input [`WORD_WIDTH-1:0] nexthop, nextsinks;
 	output forAggregation, done, wr_en;
 	output [`WORD_WIDTH-1:0] action, address, data_out;
 
@@ -23,50 +20,40 @@ module selectMyAction(clock, nrst, start, address, wr_en, nexthop, nextsinks, rn
 
 	always @ (posedge clock) begin
 		if (!nrst) begin
-			done_buf <= 0;
-			wr_en_buf <= 0;
-			forAggregation_buf <= 0;
-			action_buf <= nexthop;
-			state <= 0;
+			done_buf = 0;
+			wr_en_buf = 0;
+			forAggregation_buf = 0;
+			state = 5;
 		end
 		else begin
 			case (state)
 				0: begin
-					if (start)
+					if (start) begin
+						action_buf = nexthop;
 						state = 1;
-					else 
-						state = 0;
+					end
+					else state = 0;
 				end
 
 				1: begin
-					if (nextsinks != 65) begin	// nosink = 65 // change 65 to 300+
+					if (nextsinks != 16'd65) begin
 						action_buf = nextsinks;
-						state = 4;
-						$display("Send pkt to neighbor sink in my cluster!");
+						//$display("Send pkt to neighbor sink in my cluster!");
 					end
-					else 
-						state = 2;
-
-					if (action_buf == 65) begin
-						forAggregation_buf = 1;
-						state = 2;
-						data_out_buf = 16'h1;
-						address_count = 16'h2; // forAggregation (FLAG) address
-						wr_en_buf = 1;
-						$display("No better in-cluster head. Schedule aggregation!");
-					end
-					else 
-						forAggregation_buf = 0;
-
-					state = 3;
+					state = 2;
 				end
 
 				2: begin
-					wr_en_buf = 0;
+					if (action_buf == 300) begin
+						forAggregation_buf = 1;
+						data_out_buf = 16'h1;
+						address_count = 16'h2; // forAggregation (FLAG) address
+						wr_en_buf = 1;
+						//$display("No better in-cluster head. Schedule aggregation!");
+					end
+					else forAggregation_buf = 0;
+
 					state = 3;
-					data_out_buf = rng_in;
-					address_count = 16'h7FE;	// rngSeed address
-					wr_en_buf = 1;
 				end
 
 				3: begin
@@ -76,9 +63,20 @@ module selectMyAction(clock, nrst, start, address, wr_en, nexthop, nextsinks, rn
 
 				4: begin
 					done_buf = 1;
+					state = 5;
 				end
 
-				default: state = 4;
+				5: begin
+					if (en) begin
+						done_buf = 0;
+						wr_en_buf = 0;
+						forAggregation_buf = 0;
+						state = 0;
+					end
+					else state = 5;
+				end
+
+				default: state = 5;
 			endcase
 		end
 	end

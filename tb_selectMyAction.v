@@ -16,17 +16,16 @@ module tb_selectMyAction();
 	mem mem1(clock, address, wr_en, mem_data_in, mem_data_out);
 
 	// selectMyAction Module
-	reg start;
+	reg start, en;
 	wire forAggregation, done;
 	wire [15:0] action;
-	reg [15:0] nexthop, nextsinks, rng_in;
-	selectMyAction sma1(clock, nrst, start, address, wr_en, nexthop, nextsinks, rng_in, action, mem_data_in, forAggregation, done);
-    
+	reg [15:0] nexthop, nextsinks;
+	selectMyAction sma1(clock, nrst, en, start, address, wr_en, nexthop, nextsinks, action, mem_data_in, forAggregation, done);
+
     // Initial Values
     initial begin
 		nexthop = 65;
 		nextsinks = 65;
-		rng_in = 5;
     end
 
 	// Clock
@@ -41,6 +40,8 @@ module tb_selectMyAction();
 		start = 0;
 		#5 nrst = 0;
 		#20 nrst = 1;
+		#20 en = 1;
+		#20 en = 0;
 		#1 start = 1;
     end
 
