@@ -52,7 +52,7 @@ module winnerPolicy(
 			wr_en_buf <= 0;
 			en_rng_buf <= 0;
 			done_winnerPolicy_buf <= 0;
-			nexthop_buf <= 100;     // 100 = -1 for the lack of representation on negative numbers
+			nexthop_buf <= 301;     // 100 = -1 for the lack of representation on negative numbers
 			start_rngAddress_buf <= 0;
 			nineninenine <= 16'b1111111110111110;   	// 0.999 in binary fraction ~ 0.998992919921875 0.16
 			onezerozeroone <= 16'b1000000000100000;    	// 0.001 in binary fraction ~ 0.001007080078125	1.15

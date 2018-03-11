@@ -34,66 +34,21 @@ module mem(clock, address, wr_en, data_in, data_out);
 	//INITIALIZE MEMORY ARRAY
 	reg [`MEM_WIDTH-1:0] memory [0:`MEM_DEPTH-1];
 
+    initial begin
+        $readmemh("mem.txt", memory);
+    end
+
     // INITIAL CONTENTS FOR TESTING PURPOSES ONLY
     integer i;
     initial begin
-    
-        // knownSinks
-        for (i = 0; i < 16; i=i+1) begin
-            memory['h8 + i*2+1] = 16 - i;   // totoong value
-            memory['h8 + i*2] = 0;          // padding para hindi XX
-        end
-        
-        // worstHops
-        for (i = 0; i < 16; i=i+1) begin
-            memory['h28 + i*2+1] = 30 - i;   // totoong value
-            memory['h28 + i*2] = 0;          // padding para hindi XX
-        end
-
-        // neighborID
-        for (i = 0; i < 16; i=i+1) begin
-            memory['h48 + i*2+1] = i;       // totoong value
-            memory['h48 + i*2] = 0;         // padding para hindi XX
-        end 
-
-        // clusterID
-        for (i = 0; i < 16; i=i+1) begin
-            memory['hC8 + i*2+1] = i;       // totoong value
-            memory['hC8 + i*2] = 0;         // padding para hindi XX
-        end 
-
-        // batteryStat - (integer)
-        for (i = 0; i < 16; i=i+1) begin
-            memory['h148 + i*2+1] = i;       // totoong value
-            memory['h148 + i*2] = 0;         // padding para hindi XX
-        end         
-
-        // qValue - (integer)
-        for (i = 0; i < 16; i=i+1) begin
-            memory['h1C8 + i*2+1] = 16-i;       // totoong value
-            memory['h1C8 + i*2] = 0;         // padding para hindi XX
-        end 
-
-        // sinkIDs
-
-        // nextsinks
-
-        // better_qvalue
-
-
     // WinnerPolicy testcase
 /*        // epsilon
         memory['h4] = 0;    // testcase 1
         memory['h5] = 7;
 */
-
+/*
         memory['h4] = 0;    // testcase 2 and 3
         memory['h5] = 7;
-
-
-        // RNG_SEED
-        memory['h7FE] = 0;
-        memory['h7FF] = 5;
 
         // betterNeighbor
         memory['h668] = 0;
@@ -108,7 +63,7 @@ module mem(clock, address, wr_en, data_in, data_out);
         // betterNeighborCount
         memory['h68C] = 0;
         memory['h68C + 1] = 3;
-    
+*/ 
 /*
     // LearnCosts test case
 
