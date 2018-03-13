@@ -33,11 +33,13 @@ module winnerPolicy(
 
 	input clock, nrst, en, start_winnerPolicy, done_rng_address;
 	input [`WORD_WIDTH-1:0] mybest, besthop, bestvalue, bestneighborID, MY_NODE_ID, data_in, epsilon_step, rng_out, rng_out_4bit, rng_address;
-	output [`WORD_WIDTH-1:0] address, data_out, nexthop, betterNeighborCount, which;
+	output [10:0] address;
+	output [`WORD_WIDTH-1:0] data_out, nexthop, betterNeighborCount, which;
 	output wr_en, done_winnerPolicy, en_rng, start_rngAddress;
 
 	// Registers
-	reg [`WORD_WIDTH-1:0] explore_constant, which_buf, address_count, epsilon_buf, nexthop_buf, data_out_buf; 
+	reg [10:0] address_count;
+	reg [`WORD_WIDTH-1:0] explore_constant, which_buf, epsilon_buf, nexthop_buf, data_out_buf; 
 	reg [`WORD_WIDTH-1:0] betterNeighborCount_buf, rng_address_temp;
 	reg wr_en_buf, done_winnerPolicy_buf, en_rng_buf, start_rngAddress_buf;
 	reg one, two, three;
@@ -69,7 +71,7 @@ module winnerPolicy(
 				5'd14: begin
 					explore_constant <= rng_out_4bit;
 					en_rng_buf <= 0;
-					address_count <= 16'h4; // epsilon address
+					address_count <= 11'h4; // epsilon address
 					state <= 13;
 				end
 				5'd13: begin
@@ -80,7 +82,7 @@ module winnerPolicy(
 					if (explore_constant < epsilon_buf) begin
 						state <= 2;
 						en_rng_buf <= 1; // Generate RNG (which)
-						address_count <= 16'h68C; // betterNeighborCount Address
+						address_count <= 11'h68C; // betterNeighborCount Address
 					end
 					else begin
 						// nexthop is less than 0, or explore_constant is less than epsilon
@@ -104,7 +106,7 @@ module winnerPolicy(
 						rng_address_temp = rng_address;
 
 						// address and index of betterNeighbor
-						address_count <= 16'h668 + rng_address_temp*2;
+						address_count <= 11'h668 + rng_address_temp*2;
 					end
 					else 
 						state <= 3;
@@ -118,7 +120,7 @@ module winnerPolicy(
 					
 					// Write epsilon value to memory
 					$display("epsilon: %d", data_out_buf);
-					address_count <= 16'h4;
+					address_count <= 11'h4;
 					wr_en_buf <= 1;
 					state <= 12;
 				end
@@ -179,7 +181,6 @@ module winnerPolicy(
 						state <= 10;
 				end
 				5'd10: begin
-					$display("epsilon: %d", epsilon_buf);
 					done_winnerPolicy_buf <= 1;
 					state <= 11;
 				end

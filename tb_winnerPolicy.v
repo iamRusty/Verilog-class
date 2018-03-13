@@ -11,12 +11,12 @@
 
 module tb_winnerPolicy();
     reg clock, nrst;
-	reg [`WORD_WIDTH-1:0] address_buf;
 
     // Memory Module
     wire wr_en;
     wire [`WORD_WIDTH-1:0] mem_data_in;
-    wire [`WORD_WIDTH-1:0] address, mem_data_out;
+    wire [`WORD_WIDTH-1:0] mem_data_out;
+    wire [10:0] address;
 	mem mem1(clock, address, wr_en, mem_data_in, mem_data_out);
 
 	// RNG MODULE

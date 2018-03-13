@@ -28,14 +28,15 @@
 
 module mem(clock, address, wr_en, data_in, data_out);
 	input clock, wr_en;
-	input [`WORD_WIDTH-1:0] address, data_in;
+	input [`WORD_WIDTH-1:0] data_in;
+    input [10:0] address;
 	output [`WORD_WIDTH-1:0] data_out;
 
 	//INITIALIZE MEMORY ARRAY
 	reg [`MEM_WIDTH-1:0] memory [0:`MEM_DEPTH-1];
 
     initial begin
-        $readmemh("mem_lc1.txt", memory);
+        $readmemh("mem_wp1.txt", memory);
     end
 
     // INITIAL CONTENTS FOR TESTING PURPOSES ONLY
